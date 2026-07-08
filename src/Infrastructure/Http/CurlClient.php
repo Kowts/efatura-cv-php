@@ -7,6 +7,9 @@ namespace Kowts\Efatura\Infrastructure\Http;
 use CURLFile;
 use CurlHandle;
 use Kowts\Efatura\Exception\EfaturaException;
+use Kowts\Efatura\Http\SubmissionResult;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Cliente HTTP interno, pequeno e substituível, baseado na extensão cURL.
@@ -15,16 +18,16 @@ final class CurlClient
 {
     public function __construct(
         private readonly int $timeout = 60,
-        private readonly int $connectTimeout = 10
+        private readonly int $connectTimeout = 10,
+        private readonly LoggerInterface $logger = new NullLogger()
     ) {
     }
 
     /**
      * @param array<string, string> $headers
      * @param string|array<string, CURLFile|string> $body
-     * @return array{ok:bool, status:int, statusText:string, body:mixed, rawBody:string, headers:array<string, string>}
      */
-    public function post(string $url, array $headers, string|array $body): array
+    public function post(string $url, array $headers, string|array $body): SubmissionResult
     {
         $handle = curl_init($url);
         if (!$handle instanceof CurlHandle) {
@@ -64,14 +67,20 @@ final class CurlClient
             $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
             $contentType = (string) curl_getinfo($handle, CURLINFO_CONTENT_TYPE);
 
-            return [
-                'ok' => $status >= 200 && $status < 300,
+            $this->logger->info('Submissão e-Fatura concluída.', [
+                'host' => parse_url($url, PHP_URL_HOST),
                 'status' => $status,
-                'statusText' => self::statusText($status),
-                'body' => ResponseParser::parse($rawBody, $contentType),
-                'rawBody' => $rawBody,
-                'headers' => $responseHeaders,
-            ];
+                'bytes' => strlen($rawBody),
+            ]);
+
+            return new SubmissionResult(
+                $status >= 200 && $status < 300,
+                $status,
+                self::statusText($status),
+                ResponseParser::parse($rawBody, $contentType),
+                $rawBody,
+                $responseHeaders
+            );
         } finally {
             curl_close($handle);
         }

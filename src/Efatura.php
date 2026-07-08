@@ -12,6 +12,7 @@ use Kowts\Efatura\Contract\PlatformTransport;
 use Kowts\Efatura\Contract\SequenceStore;
 use Kowts\Efatura\Contract\XmlSigner;
 use Kowts\Efatura\Contract\Clock;
+use Kowts\Efatura\Contract\SubmissionRegistry;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Domain\Data\FiscalDocument;
 use Kowts\Efatura\Domain\EmissionMode;
@@ -20,6 +21,7 @@ use Kowts\Efatura\Domain\Iud;
 use Kowts\Efatura\Exception\ValidationException;
 use Kowts\Efatura\Infrastructure\Http\CurlMiddlewareTransport;
 use Kowts\Efatura\Infrastructure\Http\CurlPlatformTransport;
+use Kowts\Efatura\Infrastructure\Http\InMemorySubmissionRegistry;
 use Kowts\Efatura\Infrastructure\Clock\SystemClock;
 use Kowts\Efatura\Infrastructure\Sequence\InMemorySequenceStore;
 use Kowts\Efatura\Infrastructure\Signing\CertificateValidator;
@@ -28,6 +30,7 @@ use Kowts\Efatura\Infrastructure\Signing\XmlSignatureVerifier;
 use Kowts\Efatura\Infrastructure\Signing\XadesBesSigner;
 use Kowts\Efatura\Infrastructure\Validation\XsdValidator;
 use Kowts\Efatura\Packaging\DfeZip;
+use Kowts\Efatura\Http\SubmissionResult;
 use Kowts\Efatura\Validation\DocumentValidator;
 use Kowts\Efatura\Validation\IssueDateValidator;
 use Kowts\Efatura\Xml\DfeXmlBuilder;
@@ -50,7 +53,8 @@ final class Efatura
         private readonly PlatformTransport $platformTransport = new CurlPlatformTransport(),
         private readonly XsdValidator $xsdValidator = new XsdValidator(),
         private readonly CertificateValidator $certificateValidator = new CertificateValidator(),
-        private readonly Clock $clock = new SystemClock()
+        private readonly Clock $clock = new SystemClock(),
+        private readonly SubmissionRegistry $submissionRegistry = new InMemorySubmissionRegistry()
     ) {
         $this->documentValidator = new DocumentValidator();
         $this->dfeXmlBuilder = new DfeXmlBuilder($config, $this->documentValidator);
@@ -234,6 +238,11 @@ final class Efatura
      */
     public function submitDfeZip(string $zip): array
     {
+        return $this->submitDfeZipResult($zip)->toArray();
+    }
+
+    public function submitDfeZipResult(string $zip, bool $allowResubmission = false): SubmissionResult
+    {
         if ($this->config->transmitterKey === null || $this->config->transmitterKey === '') {
             throw new ValidationException(
                 'transmitterKey',
@@ -241,6 +250,8 @@ final class Efatura
                 'middleware.transmitter_key_required'
             );
         }
+        $this->claimSubmission('middleware', $zip, $allowResubmission);
+
         return $this->middlewareTransport->submit(
             $this->config->middlewareBaseUrl,
             $this->config->transmitterKey,
@@ -253,12 +264,38 @@ final class Efatura
      */
     public function submitDfeZipToPlatform(string $zip, string $accessToken, ?string $baseUrl = null): array
     {
+        return $this->submitDfeZipToPlatformResult($zip, $accessToken, $baseUrl)->toArray();
+    }
+
+    public function submitDfeZipToPlatformResult(
+        string $zip,
+        string $accessToken,
+        ?string $baseUrl = null,
+        bool $allowResubmission = false
+    ): SubmissionResult {
+        $this->claimSubmission('platform', $zip, $allowResubmission);
+
         return $this->platformTransport->submit(
             $baseUrl ?? $this->config->platformBaseUrl,
             $accessToken,
             $this->config->repositoryCode(),
             $zip
         );
+    }
+
+    private function claimSubmission(string $channel, string $zip, bool $allowResubmission): void
+    {
+        if ($allowResubmission) {
+            return;
+        }
+        $digest = hash('sha256', $channel . "\0" . $zip);
+        if (!$this->submissionRegistry->claim($digest)) {
+            throw new ValidationException(
+                'zip',
+                'Este pacote já foi submetido por esta instância. Confirme explicitamente o reenvio.',
+                'submission.duplicate'
+            );
+        }
     }
 
     public function dfaQrCodeUrl(string $iud): string

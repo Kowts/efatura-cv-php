@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kowts\Efatura\Infrastructure\Http;
 
 use Kowts\Efatura\Contract\MiddlewareTransport;
+use Kowts\Efatura\Http\SubmissionResult;
 
 /**
  * Transporte para o endpoint /v1/dfe de um middleware.
@@ -15,7 +16,7 @@ final class CurlMiddlewareTransport implements MiddlewareTransport
     {
     }
 
-    public function submit(string $baseUrl, string $transmitterKey, string $zip): array
+    public function submit(string $baseUrl, string $transmitterKey, string $zip): SubmissionResult
     {
         return $this->client->post(
             rtrim($baseUrl, '/') . '/v1/dfe',

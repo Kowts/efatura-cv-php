@@ -7,6 +7,7 @@ namespace Kowts\Efatura\Infrastructure\Http;
 use CURLFile;
 use Kowts\Efatura\Contract\PlatformTransport;
 use Kowts\Efatura\Exception\EfaturaException;
+use Kowts\Efatura\Http\SubmissionResult;
 
 /**
  * Transporte multipart para submissão directa à plataforma.
@@ -17,8 +18,12 @@ final class CurlPlatformTransport implements PlatformTransport
     {
     }
 
-    public function submit(string $baseUrl, string $accessToken, int $repositoryCode, string $zip): array
-    {
+    public function submit(
+        string $baseUrl,
+        string $accessToken,
+        int $repositoryCode,
+        string $zip
+    ): SubmissionResult {
         $path = tempnam(sys_get_temp_dir(), 'efatura-platform-');
         if ($path === false || file_put_contents($path, $zip) === false) {
             throw new EfaturaException('Não foi possível preparar o ZIP para envio.');

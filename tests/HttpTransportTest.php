@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Kowts\Efatura\Tests;
+
+use Kowts\Efatura\Config\EfaturaConfig;
+use Kowts\Efatura\Efatura;
+use Kowts\Efatura\Exception\ValidationException;
+use Kowts\Efatura\Infrastructure\Http\Psr18MiddlewareTransport;
+use Kowts\Efatura\Tests\Support\CountingMiddlewareTransport;
+use Kowts\Efatura\Tests\Support\RecordingClient;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Nyholm\Psr7\Response;
+use PHPUnit\Framework\TestCase;
+
+final class HttpTransportTest extends TestCase
+{
+    public function testTransportePsr18PreservaPedidoEResposta(): void
+    {
+        $client = new RecordingClient(new Response(
+            202,
+            ['Content-Type' => 'application/json'],
+            '{"requestId":"abc"}',
+            'Accepted'
+        ));
+        $factory = new Psr17Factory();
+        $transport = new Psr18MiddlewareTransport($client, $factory, $factory);
+
+        $result = $transport->submit('https://middleware.example.test/', 'chave-secreta', 'zip');
+
+        self::assertTrue($result->ok);
+        self::assertSame(202, $result->status);
+        self::assertSame('abc', $result->body['requestId']);
+        self::assertSame('zip', (string) $client->request?->getBody());
+        self::assertSame('chave-secreta', $client->request?->getHeaderLine('cv-ef-mw-core-transmitter-key'));
+    }
+
+    public function testImpedeReenvioAcidentalDoMesmoPacote(): void
+    {
+        $transport = new CountingMiddlewareTransport();
+        $efatura = new Efatura(
+            new EfaturaConfig(
+                transmitterNif: '100200300',
+                transmitterLed: '123',
+                softwareCode: 'EFATURAPHP',
+                softwareName: 'e-Fatura PHP',
+                softwareVersion: '0.1.0',
+                middlewareBaseUrl: 'https://middleware.example.test',
+                transmitterKey: 'segredo'
+            ),
+            middlewareTransport: $transport
+        );
+
+        self::assertTrue($efatura->submitDfeZipResult('zip')->ok);
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('já foi submetido');
+        $efatura->submitDfeZipResult('zip');
+    }
+}
