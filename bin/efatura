@@ -1,0 +1,64 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Kowts\Efatura\Domain\Iud;
+use Kowts\Efatura\Infrastructure\Validation\XsdValidator;
+
+$autoloaders = [
+    dirname(__DIR__) . '/vendor/autoload.php',
+    dirname(__DIR__, 3) . '/autoload.php',
+];
+foreach ($autoloaders as $autoloader) {
+    if (is_file($autoloader)) {
+        require $autoloader;
+        break;
+    }
+}
+if (!class_exists(Iud::class)) {
+    fwrite(STDERR, "Não foi possível carregar o autoloader Composer.\n");
+    exit(2);
+}
+
+$command = $argv[1] ?? 'help';
+$argument = $argv[2] ?? null;
+
+try {
+    switch ($command) {
+        case 'iud:validate':
+            if ($argument === null) {
+                throw new InvalidArgumentException('Indique o IUD.');
+            }
+            echo Iud::isValid($argument) ? "IUD válido.\n" : "IUD inválido.\n";
+            exit(Iud::isValid($argument) ? 0 : 1);
+
+        case 'iud:parse':
+            if ($argument === null) {
+                throw new InvalidArgumentException('Indique o IUD.');
+            }
+            echo json_encode(Iud::parse($argument), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
+            break;
+
+        case 'xml:validate':
+            if ($argument === null || !is_file($argument)) {
+                throw new InvalidArgumentException('Indique um ficheiro XML existente.');
+            }
+            $xml = file_get_contents($argument);
+            if ($xml === false) {
+                throw new RuntimeException('Não foi possível ler o XML.');
+            }
+            $result = (new XsdValidator())->validate($xml);
+            echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n";
+            exit($result['valid'] ? 0 : 1);
+
+        default:
+            echo "e-Fatura CV\n\n";
+            echo "  efatura iud:validate <IUD>\n";
+            echo "  efatura iud:parse <IUD>\n";
+            echo "  efatura xml:validate <ficheiro.xml>\n";
+    }
+} catch (Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . "\n");
+    exit(1);
+}

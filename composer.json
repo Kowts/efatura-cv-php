@@ -33,14 +33,22 @@
     "require-dev": {
         "dompdf/dompdf": "^2.0 || ^3.0",
         "endroid/qr-code": "^5.0",
+        "illuminate/support": "^10.0 || ^11.0 || ^12.0",
         "phpunit/phpunit": "^10.5 || ^11.0",
         "phpstan/phpstan": "^1.12 || ^2.0",
-        "squizlabs/php_codesniffer": "^3.10"
+        "squizlabs/php_codesniffer": "^3.10",
+        "symfony/dependency-injection": "^6.4 || ^7.0",
+        "symfony/http-kernel": "^6.4 || ^7.0"
     },
     "suggest": {
         "dompdf/dompdf": "Necessário para gerar o DFA em PDF.",
-        "endroid/qr-code": "Necessário para incorporar o QR Code no DFA."
+        "endroid/qr-code": "Necessário para incorporar o QR Code no DFA.",
+        "illuminate/support": "Necessário para usar o Service Provider Laravel.",
+        "symfony/dependency-injection": "Necessário para usar o bundle Symfony."
     },
+    "bin": [
+        "bin/efatura"
+    ],
     "autoload": {
         "psr-4": {
             "Kowts\\Efatura\\": "src/"
