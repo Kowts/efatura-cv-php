@@ -7,7 +7,6 @@ namespace Kowts\Efatura\Infrastructure\Sequence;
 use Kowts\Efatura\Contract\SequenceStore;
 use Kowts\Efatura\Domain\DocumentType;
 use PDO;
-use Throwable;
 
 /**
  * Sequências persistentes e atómicas para SQLite, MySQL/MariaDB e PostgreSQL.
@@ -33,40 +32,70 @@ final class PdoSequenceStore implements SequenceStore
     public function next(string $nif, int $year, string $led, DocumentType $type): int
     {
         $key = $this->key($nif, $year, $led, $type);
-        $this->pdo->beginTransaction();
+        $driver = (string) $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $updatedAt = gmdate(DATE_ATOM);
 
+        return match ($driver) {
+            'sqlite', 'pgsql' => $this->nextWithReturning($key, $updatedAt),
+            'mysql' => $this->nextWithMySql($key, $updatedAt),
+            default => $this->nextWithTransaction($key, $updatedAt),
+        };
+    }
+
+    private function nextWithReturning(string $key, string $updatedAt): int
+    {
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$this->safeTable()} (scope_key, current_value, updated_at)"
+            . ' VALUES (:scope, 1, :updated)'
+            . ' ON CONFLICT(scope_key) DO UPDATE SET'
+            . ' current_value = current_value + 1, updated_at = excluded.updated_at'
+            . ' RETURNING current_value'
+        );
+        $statement->execute(['scope' => $key, 'updated' => $updatedAt]);
+        $value = $statement->fetchColumn();
+        if ($value === false) {
+            throw new \RuntimeException('A base de dados não devolveu o próximo número fiscal.');
+        }
+
+        return (int) $value;
+    }
+
+    private function nextWithMySql(string $key, string $updatedAt): int
+    {
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$this->safeTable()} (scope_key, current_value, updated_at)"
+            . ' VALUES (:scope, 1, :updated)'
+            . ' ON DUPLICATE KEY UPDATE'
+            . ' current_value = LAST_INSERT_ID(current_value + 1), updated_at = VALUES(updated_at)'
+        );
+        $statement->execute(['scope' => $key, 'updated' => $updatedAt]);
+
+        return $statement->rowCount() === 1 ? 1 : (int) $this->pdo->lastInsertId();
+    }
+
+    private function nextWithTransaction(string $key, string $updatedAt): int
+    {
+        $this->pdo->beginTransaction();
         try {
             $statement = $this->pdo->prepare(
-                "SELECT current_value FROM {$this->safeTable()} WHERE scope_key = :scope"
-                . ($this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? '' : ' FOR UPDATE')
+                "SELECT current_value FROM {$this->safeTable()} WHERE scope_key = :scope FOR UPDATE"
             );
             $statement->execute(['scope' => $key]);
             $current = $statement->fetchColumn();
-            $next = $current === false ? 1 : ((int) $current + 1);
+            $next = $current === false ? 1 : (int) $current + 1;
 
-            if ($current === false) {
-                $statement = $this->pdo->prepare(
-                    "INSERT INTO {$this->safeTable()} (scope_key, current_value, updated_at)"
+            $sql = $current === false
+                ? "INSERT INTO {$this->safeTable()} (scope_key, current_value, updated_at)"
                     . ' VALUES (:scope, :value, :updated)'
-                );
-            } else {
-                $statement = $this->pdo->prepare(
-                    "UPDATE {$this->safeTable()} SET current_value = :value, updated_at = :updated"
-                    . ' WHERE scope_key = :scope'
-                );
-            }
-            $statement->execute([
-                'scope' => $key,
-                'value' => $next,
-                'updated' => gmdate(DATE_ATOM),
-            ]);
+                : "UPDATE {$this->safeTable()} SET current_value = :value, updated_at = :updated"
+                    . ' WHERE scope_key = :scope';
+            $update = $this->pdo->prepare($sql);
+            $update->execute(['scope' => $key, 'value' => $next, 'updated' => $updatedAt]);
             $this->pdo->commit();
 
             return $next;
-        } catch (Throwable $exception) {
-            if ($this->pdo->inTransaction()) {
-                $this->pdo->rollBack();
-            }
+        } catch (\Throwable $exception) {
+            $this->pdo->rollBack();
             throw $exception;
         }
     }
