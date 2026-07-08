@@ -2,18 +2,28 @@
 
 O pacote segue dependências orientadas para o domínio:
 
-```text
-Aplicação consumidora
-        |
-        v
-      Efatura (fachada)
-        |
-        +--> Validação e domínio
-        +--> Geração XML
-        +--> Contratos
-                 ^
-                 |
-        Infra-estrutura (PDO, cURL, OpenSSL, libxml)
+```mermaid
+flowchart TD
+    APP["Aplicação consumidora"]
+    FACADE["Efatura<br/>Fachada pública"]
+    VALIDATION["Validação<br/>Regras fiscais locais"]
+    DOMAIN["Domínio<br/>IUD, eventos e enums"]
+    XML["XML<br/>DFE v11 e eventos"]
+    PACKAGING["Empacotamento<br/>ZIP Deflate"]
+    CONTRACTS["Contratos<br/>Pontos de extensão"]
+    INFRA["Infra-estrutura<br/>PDO, cURL, OpenSSL e libxml"]
+    OFFICIAL["Artefactos oficiais<br/>XSD e-Fatura"]
+
+    APP --> FACADE
+    FACADE --> VALIDATION
+    FACADE --> XML
+    FACADE --> PACKAGING
+    FACADE --> CONTRACTS
+    VALIDATION --> DOMAIN
+    XML --> DOMAIN
+    XML --> VALIDATION
+    INFRA -. "implementa" .-> CONTRACTS
+    INFRA --> OFFICIAL
 ```
 
 ## Directórios
