@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kowts\Efatura\Builder;
 
 use Kowts\Efatura\Domain\DocumentType;
+use Kowts\Efatura\Domain\Data\FiscalDocument;
 use Kowts\Efatura\Validation\DocumentValidator;
 
 /**
@@ -110,5 +111,10 @@ final class DocumentBuilder
     public function validate(): array
     {
         return $this->validator->validate($this->toArray());
+    }
+
+    public function dto(): FiscalDocument
+    {
+        return FiscalDocument::fromArray($this->toArray(), $this->validator);
     }
 }

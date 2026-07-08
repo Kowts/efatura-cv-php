@@ -13,6 +13,7 @@ use Kowts\Efatura\Contract\SequenceStore;
 use Kowts\Efatura\Contract\XmlSigner;
 use Kowts\Efatura\Contract\Clock;
 use Kowts\Efatura\Domain\DocumentType;
+use Kowts\Efatura\Domain\Data\FiscalDocument;
 use Kowts\Efatura\Domain\EmissionMode;
 use Kowts\Efatura\Domain\EventId;
 use Kowts\Efatura\Domain\Iud;
@@ -72,6 +73,20 @@ final class Efatura
         return $this->documentValidator->validate($document);
     }
 
+    /**
+     * Cria um documento imutável e tipado a partir da API por arrays.
+     *
+     * @param array<string, mixed> $document
+     */
+    public function documentFromArray(array $document): FiscalDocument
+    {
+        if (!isset($document['emitter']) && $this->config->emitter !== null) {
+            $document['emitter'] = $this->config->emitterOrFail();
+        }
+
+        return FiscalDocument::fromArray($document, $this->documentValidator);
+    }
+
     public function nextDocumentNumber(string $issueDate, DocumentType $type): int
     {
         $year = (int) substr($issueDate, 0, 4);
@@ -123,8 +138,12 @@ final class Efatura
     /**
      * @param array<string, mixed> $document
      */
-    public function buildDfeXml(string $iud, array $document, EmissionMode $mode = EmissionMode::Online): string
-    {
+    public function buildDfeXml(
+        string $iud,
+        array|FiscalDocument $document,
+        EmissionMode $mode = EmissionMode::Online
+    ): string {
+        $document = $document instanceof FiscalDocument ? $document->toArray() : $document;
         if (!isset($document['emitter']) && $this->config->emitter !== null) {
             $document['emitter'] = $this->config->emitterOrFail();
         }
