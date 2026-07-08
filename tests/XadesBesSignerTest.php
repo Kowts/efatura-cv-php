@@ -6,7 +6,13 @@ namespace Kowts\Efatura\Tests;
 
 use DOMDocument;
 use DOMXPath;
+use Kowts\Efatura\Config\EfaturaConfig;
+use Kowts\Efatura\Domain\DocumentType;
+use Kowts\Efatura\Efatura;
+use Kowts\Efatura\Infrastructure\Clock\FrozenClock;
 use Kowts\Efatura\Infrastructure\Signing\XadesBesSigner;
+use Kowts\Efatura\Infrastructure\Signing\Pkcs12Loader;
+use Kowts\Efatura\Infrastructure\Signing\XmlSignatureVerifier;
 use PHPUnit\Framework\TestCase;
 
 final class XadesBesSignerTest extends TestCase
@@ -68,6 +74,43 @@ final class XadesBesSignerTest extends TestCase
             base64_encode(hash('sha256', $signedProperties->C14N(false, false), true)),
             $digests->item(1)?->textContent
         );
+        $verification = (new XmlSignatureVerifier())->verify($result['xml']);
+        self::assertTrue($verification['valid'], implode("\n", $verification['issues']));
+    }
+
+    public function testCarregaCertificadoPkcs12(): void
+    {
+        [$certificate, $privateKey] = $this->certificatePair();
+        $pkcs12 = '';
+        self::assertTrue(openssl_pkcs12_export($certificate, $pkcs12, $privateKey, 'segredo'));
+
+        $loaded = (new Pkcs12Loader())->load($pkcs12, 'segredo');
+
+        self::assertTrue(openssl_x509_check_private_key($loaded['certificate'], $loaded['privateKey']));
+    }
+
+    public function testXmlAssinadoContinuaValidoPeranteXsd(): void
+    {
+        [$certificate, $privateKey] = $this->certificatePair();
+        $efatura = new Efatura(
+            new EfaturaConfig(
+                transmitterNif: '100200300',
+                transmitterLed: '123',
+                softwareCode: 'EFATURAPHP',
+                softwareName: 'e-Fatura PHP',
+                softwareVersion: '0.1.0',
+                middlewareBaseUrl: 'https://middleware.example.test',
+                defaultSerie: 'SER-F',
+                emitter: invoiceFixture()['emitter']
+            ),
+            clock: new FrozenClock(new \DateTimeImmutable('2026-02-08T12:00:00-01:00'))
+        );
+        $iud = $efatura->buildIud('2026-02-08', DocumentType::ElectronicInvoice, 1, '1234567890');
+        $xml = $efatura->buildDfeXml($iud, invoiceFixture());
+        $signed = $efatura->signXml($xml, $certificate, $privateKey);
+        $validation = $efatura->validateXml($signed['xml']);
+
+        self::assertTrue($validation['valid'], implode("\n", array_column($validation['errors'], 'message')));
     }
 
     /**

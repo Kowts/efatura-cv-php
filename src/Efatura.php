@@ -23,6 +23,8 @@ use Kowts\Efatura\Infrastructure\Http\CurlPlatformTransport;
 use Kowts\Efatura\Infrastructure\Clock\SystemClock;
 use Kowts\Efatura\Infrastructure\Sequence\InMemorySequenceStore;
 use Kowts\Efatura\Infrastructure\Signing\CertificateValidator;
+use Kowts\Efatura\Infrastructure\Signing\Pkcs12Loader;
+use Kowts\Efatura\Infrastructure\Signing\XmlSignatureVerifier;
 use Kowts\Efatura\Infrastructure\Signing\XadesBesSigner;
 use Kowts\Efatura\Infrastructure\Validation\XsdValidator;
 use Kowts\Efatura\Packaging\DfeZip;
@@ -192,9 +194,31 @@ final class Efatura
     public function validateCertificate(
         string $certificate,
         ?string $privateKey = null,
-        ?string $privateKeyPassword = null
+        ?string $privateKeyPassword = null,
+        ?string $trustStore = null
     ): array {
-        return $this->certificateValidator->validate($certificate, $privateKey, $privateKeyPassword);
+        return $this->certificateValidator->validate(
+            $certificate,
+            $privateKey,
+            $privateKeyPassword,
+            $trustStore
+        );
+    }
+
+    /**
+     * @return array{valid:bool, issues:list<string>, certificateFingerprint:?string}
+     */
+    public function verifyXmlSignature(string $xml): array
+    {
+        return (new XmlSignatureVerifier())->verify($xml);
+    }
+
+    /**
+     * @return array{certificate:string, privateKey:string, extraCertificates:list<string>}
+     */
+    public function loadPkcs12(string $contents, string $password): array
+    {
+        return (new Pkcs12Loader())->load($contents, $password);
     }
 
     /**

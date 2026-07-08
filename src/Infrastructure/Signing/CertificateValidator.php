@@ -18,7 +18,8 @@ final class CertificateValidator
     public function validate(
         string $certificate,
         ?string $privateKey = null,
-        ?string $privateKeyPassword = null
+        ?string $privateKeyPassword = null,
+        ?string $trustStore = null
     ): array {
         $resource = openssl_x509_read($certificate);
         if ($resource === false) {
@@ -44,6 +45,17 @@ final class CertificateValidator
             $key = openssl_pkey_get_private($privateKey, $privateKeyPassword ?? '');
             if ($key === false || !openssl_x509_check_private_key($resource, $key)) {
                 $issues[] = 'A chave privada não corresponde ao certificado.';
+            }
+        }
+        $keyUsage = (string) ($parsed['extensions']['keyUsage'] ?? '');
+        if ($keyUsage !== '' && stripos($keyUsage, 'digital signature') === false) {
+            $issues[] = 'O certificado não permite assinatura digital no campo Key Usage.';
+        }
+        if ($trustStore !== null) {
+            if (!is_file($trustStore)) {
+                $issues[] = 'O ficheiro da cadeia de confiança não existe.';
+            } elseif (openssl_x509_checkpurpose($resource, X509_PURPOSE_ANY, [$trustStore]) !== true) {
+                $issues[] = 'A cadeia de confiança do certificado não pôde ser validada.';
             }
         }
 
