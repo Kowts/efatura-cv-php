@@ -31,6 +31,10 @@ use Kowts\Efatura\Infrastructure\Signing\XadesBesSigner;
 use Kowts\Efatura\Infrastructure\Validation\XsdValidator;
 use Kowts\Efatura\Packaging\DfeZip;
 use Kowts\Efatura\Http\SubmissionResult;
+use Kowts\Efatura\Fiscal\FiscalReadinessService;
+use Kowts\Efatura\Contract\TaxpayerRegistryClient;
+use Kowts\Efatura\Contract\SoftwareRegistryClient;
+use Kowts\Efatura\Contract\EmitterAuthorizationClient;
 use Kowts\Efatura\Validation\DocumentValidator;
 use Kowts\Efatura\Validation\IssueDateValidator;
 use Kowts\Efatura\Xml\DfeXmlBuilder;
@@ -304,5 +308,26 @@ final class Efatura
             throw new ValidationException('iud', 'O IUD é inválido.');
         }
         return rtrim($this->config->dfaBaseUrl, '/') . '/' . rawurlencode($iud);
+    }
+
+    /**
+     * @param array<string, mixed>|FiscalDocument $document
+     * @return array{ready:bool, checks:array<string, \Kowts\Efatura\Fiscal\RegistryResult>, issues:list<string>}
+     */
+    public function validateFiscalReadiness(
+        array|FiscalDocument $document,
+        TaxpayerRegistryClient $taxpayers,
+        SoftwareRegistryClient $software,
+        EmitterAuthorizationClient $authorizations,
+        ?string $accessToken = null
+    ): array {
+        $dto = $document instanceof FiscalDocument ? $document : $this->documentFromArray($document);
+
+        return (new FiscalReadinessService(
+            $this->config,
+            $taxpayers,
+            $software,
+            $authorizations
+        ))->validate($dto, $accessToken);
     }
 }

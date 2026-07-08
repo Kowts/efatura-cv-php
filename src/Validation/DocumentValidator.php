@@ -104,6 +104,13 @@ final class DocumentValidator
         }
 
         if (isset($value['reference']) && trim((string) $value['reference']) !== '') {
+            if ($emitter) {
+                throw new ValidationException(
+                    $field,
+                    'O emitente deve incluir identificação fiscal completa.',
+                    'emitter.reference_not_allowed'
+                );
+            }
             return ['reference' => trim((string) $value['reference'])];
         }
 
