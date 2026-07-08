@@ -11,6 +11,7 @@ use Kowts\Efatura\Contract\MiddlewareTransport;
 use Kowts\Efatura\Contract\PlatformTransport;
 use Kowts\Efatura\Contract\SequenceStore;
 use Kowts\Efatura\Contract\XmlSigner;
+use Kowts\Efatura\Contract\Clock;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Domain\EmissionMode;
 use Kowts\Efatura\Domain\EventId;
@@ -18,12 +19,14 @@ use Kowts\Efatura\Domain\Iud;
 use Kowts\Efatura\Exception\ValidationException;
 use Kowts\Efatura\Infrastructure\Http\CurlMiddlewareTransport;
 use Kowts\Efatura\Infrastructure\Http\CurlPlatformTransport;
+use Kowts\Efatura\Infrastructure\Clock\SystemClock;
 use Kowts\Efatura\Infrastructure\Sequence\InMemorySequenceStore;
 use Kowts\Efatura\Infrastructure\Signing\CertificateValidator;
 use Kowts\Efatura\Infrastructure\Signing\XadesBesSigner;
 use Kowts\Efatura\Infrastructure\Validation\XsdValidator;
 use Kowts\Efatura\Packaging\DfeZip;
 use Kowts\Efatura\Validation\DocumentValidator;
+use Kowts\Efatura\Validation\IssueDateValidator;
 use Kowts\Efatura\Xml\DfeXmlBuilder;
 use Kowts\Efatura\Xml\EventXmlBuilder;
 
@@ -43,7 +46,8 @@ final class Efatura
         private readonly MiddlewareTransport $middlewareTransport = new CurlMiddlewareTransport(),
         private readonly PlatformTransport $platformTransport = new CurlPlatformTransport(),
         private readonly XsdValidator $xsdValidator = new XsdValidator(),
-        private readonly CertificateValidator $certificateValidator = new CertificateValidator()
+        private readonly CertificateValidator $certificateValidator = new CertificateValidator(),
+        private readonly Clock $clock = new SystemClock()
     ) {
         $this->documentValidator = new DocumentValidator();
         $this->dfeXmlBuilder = new DfeXmlBuilder($config, $this->documentValidator);
@@ -124,7 +128,14 @@ final class Efatura
         if (!isset($document['emitter']) && $this->config->emitter !== null) {
             $document['emitter'] = $this->config->emitterOrFail();
         }
-        return $this->dfeXmlBuilder->build($iud, $document, $mode);
+        $validated = $this->documentValidator->validate($document);
+        (new IssueDateValidator($this->clock))->validate(
+            (string) $validated['issueDate'],
+            isset($validated['issueTime']) ? (string) $validated['issueTime'] : null,
+            $mode
+        );
+
+        return $this->dfeXmlBuilder->build($iud, $validated, $mode);
     }
 
     /**

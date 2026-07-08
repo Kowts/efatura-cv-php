@@ -10,14 +10,17 @@ use Kowts\Efatura\Domain\EmissionMode;
 use Kowts\Efatura\Domain\EventId;
 use Kowts\Efatura\Domain\EventType;
 use Kowts\Efatura\Exception\ValidationException;
+use Kowts\Efatura\Validation\EventValidator;
 
 /**
  * Gera eventos de anulação e inutilização de numeração.
  */
 final class EventXmlBuilder
 {
-    public function __construct(private readonly EfaturaConfig $config)
-    {
+    public function __construct(
+        private readonly EfaturaConfig $config,
+        private readonly EventValidator $validator = new EventValidator()
+    ) {
     }
 
     /**
@@ -28,17 +31,10 @@ final class EventXmlBuilder
         if (!EventId::isValid($eventId)) {
             throw new ValidationException('eventId', 'O identificador do evento é inválido.', 'event.id_invalid');
         }
-        $type = $event['type'] ?? null;
-        if (is_string($type)) {
-            $type = EventType::tryFrom($type);
-        }
-        if (!$type instanceof EventType) {
-            throw new ValidationException('event.type', 'O tipo de evento é inválido.', 'event.type_invalid');
-        }
-        $issueDateTime = trim((string) ($event['issueDateTime'] ?? ''));
-        if ($issueDateTime === '' || strtotime($issueDateTime) === false) {
-            throw new ValidationException('event.issueDateTime', 'A data e hora do evento são inválidas.');
-        }
+        $event = $this->validator->validate($event);
+        /** @var EventType $type */
+        $type = $event['type'];
+        $issueDateTime = (string) $event['issueDateTime'];
 
         $target = '';
         if (is_array($event['iuds'] ?? null) && $event['iuds'] !== []) {

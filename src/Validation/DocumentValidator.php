@@ -64,6 +64,8 @@ final class DocumentValidator
         }
 
         $this->validateTypeSpecificFields($document, $type);
+        $this->validateFieldCompatibility($document, $type);
+        $this->validateRempe($document, $type);
 
         return $document;
     }
@@ -345,7 +347,24 @@ final class DocumentValidator
     private function validateTypeSpecificFields(array $document, DocumentType $type): void
     {
         if (
-            in_array($type, [DocumentType::ElectronicCreditNote, DocumentType::ElectronicDebitNote], true)
+            $type === DocumentType::ElectronicSalesReceipt
+            && $document['receiver'] === null
+            && is_array($document['totals'])
+            && ((float) $document['totals']['netTotalAmount'] + (float) $document['totals']['taxTotalAmount']) >= 20_000
+        ) {
+            throw new ValidationException(
+                'receiver',
+                'O adquirente é obrigatório em talões de venda de valor igual ou superior a 20 000.',
+                'document.receiver_threshold'
+            );
+        }
+
+        if (
+            in_array($type, [
+                DocumentType::ElectronicCreditNote,
+                DocumentType::ElectronicDebitNote,
+                DocumentType::ElectronicReturnNote,
+            ], true)
             && trim((string) ($document['issueReasonCode'] ?? '')) === ''
         ) {
             throw new ValidationException(
@@ -353,6 +372,41 @@ final class DocumentValidator
                 'O motivo de emissão é obrigatório para notas correctivas.',
                 'document.issue_reason_required'
             );
+        }
+        if (
+            in_array($type, [
+            DocumentType::ElectronicCreditNote,
+            DocumentType::ElectronicDebitNote,
+            DocumentType::ElectronicReturnNote,
+            ], true)
+        ) {
+            $allowedReasons = match ($type) {
+                DocumentType::ElectronicCreditNote => ['2', '3', '6', '7', '8', '9', 'IN', 'DRP'],
+                DocumentType::ElectronicDebitNote => ['2', '3', '4', '6', '8', '9', 'DD', 'IN'],
+                DocumentType::ElectronicReturnNote => ['0', '2', '3', '6', '7', '8', '9', 'IN'],
+            };
+            $reason = (string) ($document['issueReasonCode'] ?? '');
+            if (!in_array($reason, $allowedReasons, true)) {
+                throw new ValidationException(
+                    'issueReasonCode',
+                    'O motivo de emissão não é permitido para este documento.',
+                    'document.issue_reason_invalid'
+                );
+            }
+            if ($reason === 'DRP' && !is_array($document['rappelPeriod'] ?? null)) {
+                throw new ValidationException(
+                    'rappelPeriod',
+                    'O período de rappel é obrigatório quando o motivo é DRP.',
+                    'document.rappel_period_required'
+                );
+            }
+            if ($reason !== 'IN' && $document['references'] === []) {
+                throw new ValidationException(
+                    'references',
+                    'As referências são obrigatórias para documentos correctivos.',
+                    'document.references_required'
+                );
+            }
         }
         if (
             $type === DocumentType::ElectronicTransportDocument
@@ -370,13 +424,128 @@ final class DocumentValidator
                 'transport.fields_required'
             );
         }
-        if ($type === DocumentType::ElectronicReceipt && trim((string) ($document['receiptTypeCode'] ?? '')) === '') {
-            throw new ValidationException(
-                'receiptTypeCode',
-                'O tipo de recibo é obrigatório.',
-                'receipt.type_required'
-            );
+        if ($type === DocumentType::ElectronicTransportDocument) {
+            $receiverType = $document['receiverTypeCode'] ?? null;
+            $transportType = (string) ($document['transportDocumentTypeCode'] ?? '');
+            if ($receiverType !== null && !in_array((string) $receiverType, ['1', '2', '3'], true)) {
+                throw new ValidationException('receiverTypeCode', 'O tipo de destinatário deve estar entre 1 e 3.');
+            }
+            if (!in_array($transportType, ['1', '2', '3', '4', '5'], true)) {
+                throw new ValidationException('transportDocumentTypeCode', 'O tipo de transporte deve estar entre 1 e 5.');
+            }
+            if ($transportType === '5' && $document['references'] === []) {
+                throw new ValidationException(
+                    'references',
+                    'A devolução de cliente exige uma referência documental.',
+                    'transport.references_required'
+                );
+            }
         }
+        if ($type === DocumentType::ElectronicReceipt) {
+            $receiptType = (string) ($document['receiptTypeCode'] ?? '');
+            if (!in_array($receiptType, ['1', '2', '3', '4'], true)) {
+                throw new ValidationException(
+                    'receiptTypeCode',
+                    'O tipo de recibo deve estar entre 1 e 4.',
+                    'receipt.type_invalid'
+                );
+            }
+            if ($receiptType === '4' && !is_array($document['rentReceipt'] ?? null)) {
+                throw new ValidationException(
+                    'rentReceipt',
+                    'Os dados da renda são obrigatórios para recibos do tipo 4.',
+                    'receipt.rent_required'
+                );
+            }
+        }
+    }
+
+    /**
+     * Impede que campos oficiais sejam silenciosamente ignorados num tipo incompatível.
+     *
+     * @param array<string, mixed> $document
+     */
+    private function validateFieldCompatibility(array $document, DocumentType $type): void
+    {
+        $allowed = [
+            'dueDate' => [DocumentType::ElectronicInvoice],
+            'orderReferenceId' => [DocumentType::ElectronicInvoice, DocumentType::ElectronicInvoiceReceipt],
+            'taxPointDate' => [DocumentType::ElectronicInvoice, DocumentType::ElectronicInvoiceReceipt],
+            'paymentParty' => [
+                DocumentType::ElectronicInvoiceReceipt,
+                DocumentType::ElectronicReceipt,
+                DocumentType::ElectronicEntryNote,
+            ],
+            'delivery' => [
+                DocumentType::ElectronicInvoice,
+                DocumentType::ElectronicInvoiceReceipt,
+                DocumentType::ElectronicSalesReceipt,
+            ],
+            'receiptTypeCode' => [DocumentType::ElectronicReceipt],
+            'rentReceipt' => [DocumentType::ElectronicReceipt],
+            'rappelPeriod' => [DocumentType::ElectronicCreditNote],
+            'issueReasonCode' => [
+                DocumentType::ElectronicCreditNote,
+                DocumentType::ElectronicDebitNote,
+                DocumentType::ElectronicReturnNote,
+            ],
+            'issueReasonDescription' => [DocumentType::ElectronicReturnNote],
+            'receiverTypeCode' => [DocumentType::ElectronicTransportDocument],
+            'transportDocumentTypeCode' => [DocumentType::ElectronicTransportDocument],
+            'transportServiceProviderParty' => [DocumentType::ElectronicTransportDocument],
+            'transportRoute' => [DocumentType::ElectronicTransportDocument],
+        ];
+
+        foreach ($allowed as $field => $types) {
+            if ($this->hasContent($document[$field] ?? null) && !in_array($type, $types, true)) {
+                throw new ValidationException(
+                    $field,
+                    "O campo {$field} não é permitido neste tipo de documento.",
+                    'document.field_not_allowed'
+                );
+            }
+        }
+
+        $paymentsAllowed = [
+            DocumentType::ElectronicInvoice,
+            DocumentType::ElectronicInvoiceReceipt,
+            DocumentType::ElectronicSalesReceipt,
+            DocumentType::ElectronicReceipt,
+            DocumentType::ElectronicEntryNote,
+        ];
+        if ($this->hasContent($document['payments'] ?? null) && !in_array($type, $paymentsAllowed, true)) {
+            throw new ValidationException('payments', 'Os pagamentos não são permitidos neste tipo de documento.');
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $document
+     */
+    private function validateRempe(array $document, DocumentType $type): void
+    {
+        if (
+            $type !== DocumentType::ElectronicInvoice
+            || strtoupper((string) ($document['emitter']['fiscalFramework'] ?? '')) !== 'REMPE'
+        ) {
+            return;
+        }
+
+        foreach ($document['lines'] as $lineIndex => $line) {
+            foreach ($line['taxes'] as $taxIndex => $tax) {
+                if ($tax['taxTypeCode'] !== 'NA') {
+                    throw new ValidationException(
+                        "lines.{$lineIndex}.taxes.{$taxIndex}.taxTypeCode",
+                        'As facturas de emitentes REMPE devem usar o código de imposto NA.',
+                        'tax.rempe_requires_na'
+                    );
+                }
+            }
+        }
+    }
+
+    private function hasContent(mixed $value): bool
+    {
+        return !($value === null || $value === '' || $value === []);
     }
 
     private function assertMoney(float $actual, float $expected, string $field): void

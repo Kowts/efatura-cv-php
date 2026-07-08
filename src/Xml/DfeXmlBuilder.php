@@ -381,6 +381,13 @@ final class DfeXmlBuilder
      */
     private function assertContingency(array $data, EmissionMode $mode): void
     {
+        if ($mode === EmissionMode::Online && is_array($data['contingency'] ?? null)) {
+            throw new ValidationException(
+                'contingency',
+                'Os dados de contingência não são permitidos na emissão online.',
+                'contingency.not_allowed_online'
+            );
+        }
         if ($mode->requiresContingency() && !is_array($data['contingency'] ?? null)) {
             throw new ValidationException(
                 'contingency',
@@ -388,11 +395,46 @@ final class DfeXmlBuilder
                 'contingency.required'
             );
         }
+        if (!$mode->requiresContingency()) {
+            return;
+        }
+
+        $contingency = $data['contingency'];
+        if (trim((string) ($contingency['ledCode'] ?? '')) === '') {
+            throw new ValidationException(
+                'contingency.ledCode',
+                'O LED é obrigatório na contingência.',
+                'contingency.led_code_required'
+            );
+        }
+        $reason = (string) ($contingency['reasonTypeCode'] ?? '');
+        $allowedReasons = $mode === EmissionMode::Offline ? ['0', '1', '4', '5'] : ['0', '2', '3'];
+        if (!in_array($reason, $allowedReasons, true)) {
+            throw new ValidationException(
+                'contingency.reasonTypeCode',
+                'O motivo de contingência não é permitido neste modo de emissão.',
+                'contingency.reason_type_invalid'
+            );
+        }
+        if ($mode === EmissionMode::Offline && trim((string) ($contingency['issueTime'] ?? '')) === '') {
+            throw new ValidationException(
+                'contingency.issueTime',
+                'A hora da contingência é obrigatória no modo Offline.',
+                'contingency.issue_time_required'
+            );
+        }
         if ($mode === EmissionMode::Off && trim((string) ($data['contingency']['iuc'] ?? '')) === '') {
             throw new ValidationException(
                 'contingency.iuc',
                 'O IUC é obrigatório no modo Off.',
                 'contingency.iuc_required'
+            );
+        }
+        if ($reason === '0' && trim((string) ($contingency['reasonDescription'] ?? '')) === '') {
+            throw new ValidationException(
+                'contingency.reasonDescription',
+                'A descrição é obrigatória quando o motivo da contingência é 0.',
+                'contingency.reason_description_required'
             );
         }
     }

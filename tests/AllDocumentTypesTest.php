@@ -7,6 +7,7 @@ namespace Kowts\Efatura\Tests;
 use Kowts\Efatura\Config\EfaturaConfig;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Efatura;
+use Kowts\Efatura\Infrastructure\Clock\FrozenClock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -81,6 +82,6 @@ final class AllDocumentTypesTest extends TestCase
             middlewareBaseUrl: 'https://middleware.example.test',
             defaultSerie: 'SER-F',
             emitter: invoiceFixture()['emitter']
-        ));
+        ), clock: new FrozenClock(new \DateTimeImmutable('2026-02-08T12:00:00-01:00')));
     }
 }

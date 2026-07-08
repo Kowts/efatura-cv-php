@@ -9,6 +9,7 @@ use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Domain\Environment;
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Infrastructure\Sequence\InMemorySequenceStore;
+use Kowts\Efatura\Infrastructure\Clock\FrozenClock;
 use PHPUnit\Framework\TestCase;
 use ZipArchive;
 
@@ -68,7 +69,8 @@ final class EfaturaTest extends TestCase
                 emitter: invoiceFixture()['emitter'],
                 environment: Environment::Test
             ),
-            new InMemorySequenceStore()
+            new InMemorySequenceStore(),
+            clock: new FrozenClock(new \DateTimeImmutable('2026-02-08T12:00:00-01:00'))
         );
     }
 }
