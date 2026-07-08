@@ -24,7 +24,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: curl, dom, json, libxml, openssl, pdo_sqlite, zip
+          extensions: curl, dom, gd, json, libxml, openssl, pdo_sqlite, zip
           coverage: none
 
       - name: Instalar dependências

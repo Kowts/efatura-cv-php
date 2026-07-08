@@ -22,9 +22,9 @@ final class PdfDfaRenderer
         string $qrCodeUrl,
         string $currency = 'CVE'
     ): DfaDocument {
-        if (!class_exists(Dompdf::class) || !class_exists(QrCode::class)) {
+        if (!class_exists(Dompdf::class) || !class_exists(QrCode::class) || !extension_loaded('gd')) {
             throw new EfaturaException(
-                'Instale dompdf/dompdf e endroid/qr-code para gerar o DFA em PDF.'
+                'Instale dompdf/dompdf, endroid/qr-code e a extensão GD para gerar o DFA em PDF.'
             );
         }
 

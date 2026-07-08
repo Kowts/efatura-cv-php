@@ -43,6 +43,7 @@
     "suggest": {
         "dompdf/dompdf": "Necessário para gerar o DFA em PDF.",
         "endroid/qr-code": "Necessário para incorporar o QR Code no DFA.",
+        "ext-gd": "Necessário para renderizar o QR Code PNG do DFA.",
         "illuminate/support": "Necessário para usar o Service Provider Laravel.",
         "symfony/dependency-injection": "Necessário para usar o bundle Symfony."
     },
