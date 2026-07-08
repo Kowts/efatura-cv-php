@@ -35,6 +35,8 @@ use Kowts\Efatura\Fiscal\FiscalReadinessService;
 use Kowts\Efatura\Contract\TaxpayerRegistryClient;
 use Kowts\Efatura\Contract\SoftwareRegistryClient;
 use Kowts\Efatura\Contract\EmitterAuthorizationClient;
+use Kowts\Efatura\Dfa\DfaDocument;
+use Kowts\Efatura\Dfa\PdfDfaRenderer;
 use Kowts\Efatura\Validation\DocumentValidator;
 use Kowts\Efatura\Validation\IssueDateValidator;
 use Kowts\Efatura\Xml\DfeXmlBuilder;
@@ -308,6 +310,27 @@ final class Efatura
             throw new ValidationException('iud', 'O IUD é inválido.');
         }
         return rtrim($this->config->dfaBaseUrl, '/') . '/' . rawurlencode($iud);
+    }
+
+    /**
+     * @param array<string, mixed>|FiscalDocument $document
+     */
+    public function renderDfa(
+        string $iud,
+        array|FiscalDocument $document,
+        string $currency = 'CVE'
+    ): DfaDocument {
+        if (!Iud::isValid($iud)) {
+            throw new ValidationException('iud', 'O IUD é inválido.');
+        }
+        $dto = $document instanceof FiscalDocument ? $document : $this->documentFromArray($document);
+
+        return (new PdfDfaRenderer())->render(
+            $iud,
+            $dto,
+            $this->dfaQrCodeUrl($iud),
+            $currency
+        );
     }
 
     /**
