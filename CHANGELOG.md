@@ -14,4 +14,7 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - assinatura XAdES-BES, certificados e ZIP;
 - sequências em memória e PDO;
 - transportes cURL para middleware e plataforma;
-- documentação e integração contínua.
+- DTOs imutáveis, PSR-18/PSR-3 e consultas fiscais externas;
+- DFA em PDF com QR Code;
+- integrações CLI, Laravel e Symfony;
+- documentação e integração contínua em Linux e Windows.

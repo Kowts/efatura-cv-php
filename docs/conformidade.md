@@ -18,8 +18,8 @@
 | Sequência transaccional | Implementado | `PdoSequenceStore` |
 | Middleware `/v1/dfe` | Implementado | `CurlMiddlewareTransport` |
 | Plataforma `/v1/dfe` | Implementado | `CurlPlatformTransport` |
-| Consulta externa de NIF/software | Dependente do serviço | não existe contrato público estável documentado |
-| DFA em PDF | Fora do núcleo | o pacote fornece o URL/QR; a apresentação pertence à aplicação |
+| Consulta externa de NIF/software | Implementação configurável | contratos e cliente PSR-18; as rotas dependem do serviço |
+| DFA em PDF | Implementado | `PdfDfaRenderer`, QR Code, linhas, totais e contingência |
 | Homologação oficial | Externa | exige credenciais e ambiente oficial |
 
 ## Limitações verificáveis

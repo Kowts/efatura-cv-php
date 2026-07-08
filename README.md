@@ -26,6 +26,11 @@ criar pacotes ZIP e comunicar com serviços e-Fatura de Cabo Verde.
 - pacotes ZIP Deflate com nomes `{IUD}.xml`;
 - sequências em memória ou transaccionais por PDO;
 - submissão por middleware e directamente à plataforma;
+- consultas fiscais externas através de contratos e PSR-18;
+- DFA em PDF com QR Code;
+- DTOs imutáveis e tipados, sem retirar a API por arrays;
+- integrações opcionais com Laravel e Symfony;
+- CLI para inspeccionar IUDs e validar XML;
 - respostas JSON/XML normalizadas;
 - nenhuma dependência de Laravel, Symfony ou outro framework.
 
@@ -174,6 +179,7 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 - [Conformidade](docs/conformidade.md)
 - [Assinatura e certificados](docs/assinatura.md)
 - [Exemplo completo](examples/invoice.php)
+- [Exemplos dos tipos documentais](examples/document-types.php)
 - [Contribuir](CONTRIBUTING.md)
 
 ## Estado do projecto

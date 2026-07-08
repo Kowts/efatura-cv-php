@@ -76,6 +76,17 @@
         "sort-packages": true,
         "allow-plugins": false
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kowts\\Efatura\\Bridge\\Laravel\\EfaturaServiceProvider"
+            ]
+        }
+    },
+    "support": {
+        "issues": "https://github.com/Kowts/efatura-cv-php/issues",
+        "source": "https://github.com/Kowts/efatura-cv-php"
+    },
     "minimum-stability": "stable",
     "prefer-stable": true
 }
