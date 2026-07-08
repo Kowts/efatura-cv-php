@@ -1,0 +1,12 @@
+/vendor/
+/.phpunit.cache/
+/.phpunit.result.cache
+/build/
+/.idea/
+/.vscode/
+*.pem
+*.p12
+*.pfx
+*.key
+.env
+composer.lock
