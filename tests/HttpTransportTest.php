@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace Kowts\Efatura\Tests;
 
 use Kowts\Efatura\Config\EfaturaConfig;
+use Kowts\Efatura\Contract\MiddlewareTransport;
 use Kowts\Efatura\Efatura;
+use Kowts\Efatura\Exception\SubmissionUncertainException;
 use Kowts\Efatura\Exception\ValidationException;
+use Kowts\Efatura\Http\SubmissionResult;
 use Kowts\Efatura\Infrastructure\Http\Psr18MiddlewareTransport;
 use Kowts\Efatura\Tests\Support\CountingMiddlewareTransport;
 use Kowts\Efatura\Tests\Support\RecordingClient;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class HttpTransportTest extends TestCase
 {
@@ -91,5 +95,39 @@ final class HttpTransportTest extends TestCase
 
         self::assertTrue($efatura->submitEventZipResult('zip')->ok);
         self::assertSame('/v1/events', $transport->lastEndpointPath);
+    }
+
+    public function testFalhaDeTransporteProduzResultadoIncerto(): void
+    {
+        $transport = new class () implements MiddlewareTransport {
+            public function submit(
+                string $baseUrl,
+                string $transmitterKey,
+                string $zip,
+                string $endpointPath = '/v1/dfe'
+            ): SubmissionResult {
+                throw new RuntimeException('timeout');
+            }
+        };
+        $efatura = new Efatura(
+            new EfaturaConfig(
+                transmitterNif: '100200300',
+                transmitterLed: '123',
+                softwareCode: 'EFATURAPHP',
+                softwareName: 'e-Fatura PHP',
+                softwareVersion: '0.1.0',
+                middlewareBaseUrl: 'https://middleware.example.test',
+                transmitterKey: 'segredo'
+            ),
+            middlewareTransport: $transport
+        );
+
+        try {
+            $efatura->submitDfeZipResult('zip');
+            self::fail('Era esperada uma falha de submissão incerta.');
+        } catch (SubmissionUncertainException $exception) {
+            self::assertSame('middleware', $exception->channel);
+            self::assertInstanceOf(RuntimeException::class, $exception->getPrevious());
+        }
     }
 }

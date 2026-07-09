@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kowts\Efatura;
 
+use Closure;
 use DateTimeInterface;
 use Kowts\Efatura\Builder\DocumentBuilder;
 use Kowts\Efatura\Config\EfaturaConfig;
@@ -20,6 +21,7 @@ use Kowts\Efatura\Domain\Environment;
 use Kowts\Efatura\Domain\EventId;
 use Kowts\Efatura\Domain\Iud;
 use Kowts\Efatura\Exception\ValidationException;
+use Kowts\Efatura\Exception\SubmissionUncertainException;
 use Kowts\Efatura\Infrastructure\Http\CurlMiddlewareTransport;
 use Kowts\Efatura\Infrastructure\Http\CurlPlatformTransport;
 use Kowts\Efatura\Infrastructure\Http\InMemorySubmissionRegistry;
@@ -43,6 +45,7 @@ use Kowts\Efatura\Validation\DocumentValidator;
 use Kowts\Efatura\Validation\IssueDateValidator;
 use Kowts\Efatura\Xml\DfeXmlBuilder;
 use Kowts\Efatura\Xml\EventXmlBuilder;
+use Throwable;
 
 /**
  * Fachada principal e independente de frameworks.
@@ -284,11 +287,14 @@ final class Efatura
         }
         $this->claimSubmission('middleware', $zip, $allowResubmission);
 
-        return $this->middlewareTransport->submit(
-            $this->config->middlewareBaseUrl,
-            $this->config->transmitterKey,
-            $zip,
-            $this->config->middlewareDfePath
+        return $this->submitSafely(
+            'middleware',
+            fn (): SubmissionResult => $this->middlewareTransport->submit(
+                $this->config->middlewareBaseUrl,
+                $this->config->transmitterKey,
+                $zip,
+                $this->config->middlewareDfePath
+            )
         );
     }
 
@@ -311,11 +317,14 @@ final class Efatura
         }
         $this->claimSubmission('middleware-event', $zip, $allowResubmission);
 
-        return $this->middlewareTransport->submit(
-            $this->config->middlewareBaseUrl,
-            $this->config->transmitterKey,
-            $zip,
-            $this->config->middlewareEventPath
+        return $this->submitSafely(
+            'middleware-event',
+            fn (): SubmissionResult => $this->middlewareTransport->submit(
+                $this->config->middlewareBaseUrl,
+                $this->config->transmitterKey,
+                $zip,
+                $this->config->middlewareEventPath
+            )
         );
     }
 
@@ -327,12 +336,15 @@ final class Efatura
     ): SubmissionResult {
         $this->claimSubmission('platform-event', $zip, $allowResubmission);
 
-        return $this->platformTransport->submit(
-            $baseUrl ?? $this->config->platformBaseUrl,
-            $accessToken,
-            $this->config->repositoryCode(),
-            $zip,
-            $this->config->platformEventPath
+        return $this->submitSafely(
+            'platform-event',
+            fn (): SubmissionResult => $this->platformTransport->submit(
+                $baseUrl ?? $this->config->platformBaseUrl,
+                $accessToken,
+                $this->config->repositoryCode(),
+                $zip,
+                $this->config->platformEventPath
+            )
         );
     }
 
@@ -352,13 +364,28 @@ final class Efatura
     ): SubmissionResult {
         $this->claimSubmission('platform', $zip, $allowResubmission);
 
-        return $this->platformTransport->submit(
-            $baseUrl ?? $this->config->platformBaseUrl,
-            $accessToken,
-            $this->config->repositoryCode(),
-            $zip,
-            $this->config->platformDfePath
+        return $this->submitSafely(
+            'platform',
+            fn (): SubmissionResult => $this->platformTransport->submit(
+                $baseUrl ?? $this->config->platformBaseUrl,
+                $accessToken,
+                $this->config->repositoryCode(),
+                $zip,
+                $this->config->platformDfePath
+            )
         );
+    }
+
+    /**
+     * @param Closure():SubmissionResult $submission
+     */
+    private function submitSafely(string $channel, Closure $submission): SubmissionResult
+    {
+        try {
+            return $submission();
+        } catch (Throwable $exception) {
+            throw new SubmissionUncertainException($channel, $exception);
+        }
     }
 
     private function claimSubmission(string $channel, string $zip, bool $allowResubmission): void

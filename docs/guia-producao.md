@@ -36,6 +36,26 @@ flowchart LR
 Um timeout não prova que o servidor recusou o pacote. Trate-o como estado
 desconhecido e confirme o estado fiscal antes de autorizar um reenvio.
 
+As falhas de transporte lançadas pela fachada são convertidas em
+`SubmissionUncertainException`. Para consultas `GET`, pode envolver o cliente
+PSR-18 com `RetryingPsr18Client`; este aplica espera exponencial e respeita
+`Retry-After`, mas nunca repete um `POST`.
+
+```php
+use Kowts\Efatura\Fiscal\ReconciliationStatus;
+use Kowts\Efatura\Fiscal\SubmissionReconciler;
+use Kowts\Efatura\Infrastructure\Http\RetryingPsr18Client;
+
+$http = new RetryingPsr18Client($psr18Client);
+$fiscalClient = new Psr18FiscalAuthorityClient($http, $requestFactory, $baseUrl);
+$reconciliation = (new SubmissionReconciler($fiscalClient))
+    ->reconcile($iud, $accessToken);
+
+if ($reconciliation->status === ReconciliationStatus::Confirmed) {
+    // Arquivar a confirmação e não reenviar.
+}
+```
+
 ## Sequência persistente
 
 ```php
