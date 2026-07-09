@@ -8,7 +8,7 @@ use Kowts\Efatura\Contract\MiddlewareTransport;
 use Kowts\Efatura\Http\SubmissionResult;
 
 /**
- * Transporte para o endpoint /v1/dfe de um middleware.
+ * Transporte para um endpoint configurável de middleware.
  */
 final class CurlMiddlewareTransport implements MiddlewareTransport
 {
@@ -16,10 +16,14 @@ final class CurlMiddlewareTransport implements MiddlewareTransport
     {
     }
 
-    public function submit(string $baseUrl, string $transmitterKey, string $zip): SubmissionResult
-    {
+    public function submit(
+        string $baseUrl,
+        string $transmitterKey,
+        string $zip,
+        string $endpointPath = '/v1/dfe'
+    ): SubmissionResult {
         return $this->client->post(
-            rtrim($baseUrl, '/') . '/v1/dfe',
+            rtrim($baseUrl, '/') . $endpointPath,
             [
                 'Content-Type' => 'application/zip',
                 'cv-ef-mw-core-transmitter-key' => $transmitterKey,

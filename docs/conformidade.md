@@ -16,8 +16,8 @@
 | ZIP Deflate `{IUD}.xml` | Implementado | `DfeZip` |
 | Eventos FDC e UDN | Implementado | `EventXmlBuilder` |
 | Sequência transaccional | Implementado | `PdoSequenceStore` |
-| Middleware `/v1/dfe` | Implementado | `CurlMiddlewareTransport` |
-| Plataforma `/v1/dfe` | Implementado | `CurlPlatformTransport` |
+| Endpoint de middleware | Configurável | `/v1/dfe` por omissão; confirmar no ambiente homologado |
+| Endpoint de plataforma | Configurável | `/v1/dfe` ou `/v1/dfes`, conforme o serviço contratado |
 | Consulta externa de NIF/software | Implementação configurável | contratos e cliente PSR-18; as rotas dependem do serviço |
 | DFA em PDF | Implementado | `PdfDfaRenderer`, QR Code, linhas, totais e contingência |
 | Homologação oficial | Externa | exige credenciais e ambiente oficial |

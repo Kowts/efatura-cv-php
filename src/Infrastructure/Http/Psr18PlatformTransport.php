@@ -26,14 +26,15 @@ final class Psr18PlatformTransport implements PlatformTransport
         string $baseUrl,
         string $accessToken,
         int $repositoryCode,
-        string $zip
+        string $zip,
+        string $endpointPath = '/v1/dfe'
     ): SubmissionResult {
         $boundary = 'efatura-' . bin2hex(random_bytes(16));
         $body = "--{$boundary}\r\n"
             . "Content-Disposition: form-data; name=\"file\"; filename=\"dfe.zip\"\r\n"
             . "Content-Type: application/octet-stream\r\n\r\n"
             . $zip . "\r\n--{$boundary}--\r\n";
-        $request = $this->requests->createRequest('POST', rtrim($baseUrl, '/') . '/v1/dfe')
+        $request = $this->requests->createRequest('POST', rtrim($baseUrl, '/') . $endpointPath)
             ->withHeader('Authorization', 'Bearer ' . $accessToken)
             ->withHeader('cv-ef-repository-code', (string) $repositoryCode)
             ->withHeader('Content-Type', 'multipart/form-data; boundary=' . $boundary)

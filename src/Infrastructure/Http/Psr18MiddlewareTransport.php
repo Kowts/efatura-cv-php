@@ -25,9 +25,13 @@ final class Psr18MiddlewareTransport implements MiddlewareTransport
     ) {
     }
 
-    public function submit(string $baseUrl, string $transmitterKey, string $zip): SubmissionResult
-    {
-        $request = $this->requests->createRequest('POST', rtrim($baseUrl, '/') . '/v1/dfe')
+    public function submit(
+        string $baseUrl,
+        string $transmitterKey,
+        string $zip,
+        string $endpointPath = '/v1/dfe'
+    ): SubmissionResult {
+        $request = $this->requests->createRequest('POST', rtrim($baseUrl, '/') . $endpointPath)
             ->withHeader('Content-Type', 'application/zip')
             ->withHeader('cv-ef-mw-core-transmitter-key', $transmitterKey)
             ->withBody($this->streams->createStream($zip));

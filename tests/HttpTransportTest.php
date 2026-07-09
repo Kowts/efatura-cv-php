@@ -57,4 +57,18 @@ final class HttpTransportTest extends TestCase
         $this->expectExceptionMessage('já foi submetido');
         $efatura->submitDfeZipResult('zip');
     }
+
+    public function testUsaCaminhoDeEndpointConfiguravel(): void
+    {
+        $client = new RecordingClient(new Response(202));
+        $factory = new Psr17Factory();
+        $transport = new Psr18MiddlewareTransport($client, $factory, $factory);
+
+        $transport->submit('https://middleware.example.test', 'chave', 'zip', '/v1/dfes');
+
+        self::assertSame(
+            'https://middleware.example.test/v1/dfes',
+            (string) $client->request?->getUri()
+        );
+    }
 }

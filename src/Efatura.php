@@ -261,7 +261,8 @@ final class Efatura
         return $this->middlewareTransport->submit(
             $this->config->middlewareBaseUrl,
             $this->config->transmitterKey,
-            $zip
+            $zip,
+            $this->config->middlewareDfePath
         );
     }
 
@@ -285,7 +286,8 @@ final class Efatura
             $baseUrl ?? $this->config->platformBaseUrl,
             $accessToken,
             $this->config->repositoryCode(),
-            $zip
+            $zip,
+            $this->config->platformDfePath
         );
     }
 

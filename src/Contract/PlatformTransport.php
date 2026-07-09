@@ -15,6 +15,7 @@ interface PlatformTransport
         string $baseUrl,
         string $accessToken,
         int $repositoryCode,
-        string $zip
+        string $zip,
+        string $endpointPath = '/v1/dfe'
     ): SubmissionResult;
 }

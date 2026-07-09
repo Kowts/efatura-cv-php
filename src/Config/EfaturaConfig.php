@@ -30,7 +30,9 @@ final class EfaturaConfig
         public readonly ?array $emitter = null,
         public readonly string $platformBaseUrl = self::DEFAULT_PLATFORM_URL,
         public readonly string $dfaBaseUrl = self::DEFAULT_DFA_URL,
-        public readonly Environment $environment = Environment::Test
+        public readonly Environment $environment = Environment::Test,
+        public readonly string $middlewareDfePath = '/v1/dfe',
+        public readonly string $platformDfePath = '/v1/dfe'
     ) {
         self::assertNif($transmitterNif, 'transmitterNif');
         self::assertRequired($transmitterLed, 'transmitterLed');
@@ -40,6 +42,8 @@ final class EfaturaConfig
         self::assertUrl($middlewareBaseUrl, 'middlewareBaseUrl');
         self::assertUrl($platformBaseUrl, 'platformBaseUrl');
         self::assertUrl($dfaBaseUrl, 'dfaBaseUrl');
+        self::assertEndpointPath($middlewareDfePath, 'middlewareDfePath');
+        self::assertEndpointPath($platformDfePath, 'platformDfePath');
     }
 
     public function repositoryCode(): int
@@ -84,6 +88,20 @@ final class EfaturaConfig
     {
         if (filter_var($value, FILTER_VALIDATE_URL) === false) {
             throw new ValidationException($field, "O campo {$field} deve conter um URL válido.", 'config.url_invalid');
+        }
+    }
+
+    private static function assertEndpointPath(string $value, string $field): void
+    {
+        if (
+            preg_match('#^/[A-Za-z0-9._~!$&\'()*+,;=:@%/-]+$#', $value) !== 1
+            || str_contains($value, '//')
+        ) {
+            throw new ValidationException(
+                $field,
+                "O campo {$field} deve conter um caminho HTTP absoluto e sem query string.",
+                'config.endpoint_path_invalid'
+            );
         }
     }
 }

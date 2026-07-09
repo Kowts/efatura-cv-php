@@ -22,7 +22,8 @@ final class CurlPlatformTransport implements PlatformTransport
         string $baseUrl,
         string $accessToken,
         int $repositoryCode,
-        string $zip
+        string $zip,
+        string $endpointPath = '/v1/dfe'
     ): SubmissionResult {
         $path = tempnam(sys_get_temp_dir(), 'efatura-platform-');
         if ($path === false || file_put_contents($path, $zip) === false) {
@@ -31,7 +32,7 @@ final class CurlPlatformTransport implements PlatformTransport
 
         try {
             return $this->client->post(
-                rtrim($baseUrl, '/') . '/v1/dfe',
+                rtrim($baseUrl, '/') . $endpointPath,
                 [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'cv-ef-repository-code' => (string) $repositoryCode,

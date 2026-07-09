@@ -34,7 +34,9 @@ final class EfaturaFactory
             emitter: is_array($config['emitter'] ?? null) ? $config['emitter'] : null,
             platformBaseUrl: (string) ($config['platform_base_url'] ?? EfaturaConfig::DEFAULT_PLATFORM_URL),
             dfaBaseUrl: (string) ($config['dfa_base_url'] ?? EfaturaConfig::DEFAULT_DFA_URL),
-            environment: $environment
+            environment: $environment,
+            middlewareDfePath: (string) ($config['middleware_dfe_path'] ?? '/v1/dfe'),
+            platformDfePath: (string) ($config['platform_dfe_path'] ?? '/v1/dfe')
         ));
     }
 }
