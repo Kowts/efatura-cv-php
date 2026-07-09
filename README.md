@@ -3,6 +3,7 @@
 [![Testes](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml/badge.svg)](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml)
 [![PHP](https://img.shields.io/badge/PHP-%5E8.1-777BB4.svg)](https://www.php.net/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
+[![Packagist](https://img.shields.io/packagist/v/kowts/efatura-cv.svg)](https://packagist.org/packages/kowts/efatura-cv)
 
 Biblioteca PHP independente de frameworks para validar documentos fiscais,
 gerar XML DFE v11, validar com os XSD oficiais, assinar com XAdES-BES,
@@ -181,6 +182,7 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 - [Guia de produção](docs/guia-producao.md)
 - [Emissão em contingência](docs/contingencia.md)
 - [Laravel e Symfony](docs/frameworks.md)
+- [Lançamentos e verificação](docs/lancamentos.md)
 - [Exemplos completos](examples/README.md)
 - [Exemplo em PHP puro](examples/invoice.php)
 - [Exemplos dos tipos documentais](examples/document-types.php)

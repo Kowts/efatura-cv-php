@@ -3,6 +3,7 @@
     "description": "Biblioteca PHP para validação e emissão de documentos fiscais electrónicos e-Fatura de Cabo Verde.",
     "type": "library",
     "license": "MIT",
+    "homepage": "https://github.com/Kowts/efatura-cv-php",
     "keywords": [
         "cabo-verde",
         "efatura",
@@ -87,6 +88,24 @@
     "support": {
         "issues": "https://github.com/Kowts/efatura-cv-php/issues",
         "source": "https://github.com/Kowts/efatura-cv-php"
+    },
+    "archive": {
+        "name": "efatura-cv",
+        "exclude": [
+            "/.github",
+            "/.phpunit.cache",
+            "/build",
+            "/dist*",
+            "/tests",
+            "/tools",
+            "/vendor",
+            "/.gitattributes",
+            "/.gitignore",
+            "/composer.lock",
+            "/phpcs.xml.dist",
+            "/phpstan.neon.dist",
+            "/phpunit.xml.dist"
+        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true

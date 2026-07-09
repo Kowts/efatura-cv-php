@@ -7,6 +7,9 @@ on:
 
 permissions:
   contents: write
+  actions: read
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -20,7 +23,39 @@ jobs:
       - run: composer install --no-interaction --prefer-dist
       - run: composer validate --strict
       - run: composer check
+      - name: Criar pacote Composer
+        run: |
+          mkdir -p dist
+          composer archive \
+            --format=zip \
+            --dir=dist \
+            --file="efatura-cv-${GITHUB_REF_NAME}"
+      - name: Gerar SBOM CycloneDX
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: dist/efatura-cv-${{ github.ref_name }}.sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Gerar checksums SHA-256
+        run: |
+          cd dist
+          sha256sum *.zip *.json > SHA256SUMS
+      - name: Atestar proveniência do pacote
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.zip
+      - name: Atestar SBOM
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.zip
+          sbom-path: dist/efatura-cv-${{ github.ref_name }}.sbom.cdx.json
       - name: Criar release GitHub
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          files: |
+            dist/*.zip
+            dist/*.json
+            dist/SHA256SUMS

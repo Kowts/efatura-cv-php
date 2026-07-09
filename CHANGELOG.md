@@ -7,6 +7,8 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [0.1.0] - 2026-07-08
+
 ### Adicionado
 
 - núcleo inicial para os nove documentos DFE;
@@ -18,3 +20,6 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - DFA em PDF com QR Code;
 - integrações CLI, Laravel e Symfony;
 - documentação e integração contínua em Linux e Windows.
+
+[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/Kowts/efatura-cv-php/releases/tag/v0.1.0
