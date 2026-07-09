@@ -31,4 +31,28 @@ final class IudTest extends TestCase
     {
         self::assertFalse(Iud::isValid('CV3260208100200300001230100000000112345678908'));
     }
+
+    public function testRejeitaComponentesInvalidosMesmoComLuhnValido(): void
+    {
+        $invalidRepository = '9' . substr('326020810020030000123010000000011234567890', 1);
+        $invalidDate = '3' . '269931' . substr('326020810020030000123010000000011234567890', 7);
+
+        self::assertFalse(Iud::isValid('CV' . $invalidRepository . Iud::luhnDigit($invalidRepository)));
+        self::assertFalse(Iud::isValid('CV' . $invalidDate . Iud::luhnDigit($invalidDate)));
+    }
+
+    public function testRejeitaAnoQueNaoPodeSerRepresentadoSemAmbiguidade(): void
+    {
+        $this->expectException(\Kowts\Efatura\Exception\ValidationException::class);
+
+        Iud::build(
+            3,
+            '2126-02-08',
+            '100200300',
+            '123',
+            DocumentType::ElectronicInvoice,
+            1,
+            '1234567890'
+        );
+    }
 }

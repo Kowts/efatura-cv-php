@@ -10,6 +10,7 @@ use Kowts\Efatura\Domain\Environment;
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Infrastructure\Sequence\InMemorySequenceStore;
 use Kowts\Efatura\Infrastructure\Clock\FrozenClock;
+use Kowts\Efatura\Exception\ValidationException;
 use PHPUnit\Framework\TestCase;
 use ZipArchive;
 
@@ -53,6 +54,22 @@ final class EfaturaTest extends TestCase
         self::assertSame(1, $efatura->nextDocumentNumber('2026-01-01', DocumentType::ElectronicInvoice));
         self::assertSame(2, $efatura->nextDocumentNumber('2026-01-02', DocumentType::ElectronicInvoice));
         self::assertSame(1, $efatura->nextDocumentNumber('2026-01-02', DocumentType::ElectronicCreditNote));
+    }
+
+    public function testRejeitaIudDeOutroTipoDocumental(): void
+    {
+        $efatura = $this->efatura();
+        $iud = $efatura->buildIud(
+            '2026-02-08',
+            DocumentType::ElectronicCreditNote,
+            1,
+            '1234567890'
+        );
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('documentTypeCode');
+
+        $efatura->buildDfeXml($iud, invoiceFixture());
     }
 
     private function efatura(): Efatura

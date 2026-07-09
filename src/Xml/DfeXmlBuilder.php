@@ -37,7 +37,9 @@ final class DfeXmlBuilder
         $data = $this->validator->validate($document);
         /** @var DocumentType $type */
         $type = $data['type'];
-        $documentNumber = Iud::parse($iud)['documentNumber'];
+        $iudData = Iud::parse($iud);
+        $this->assertIudMatchesDocument($iudData, $data, $type);
+        $documentNumber = $iudData['documentNumber'];
         $this->assertContingency($data, $mode);
 
         return '<?xml version="1.0" encoding="UTF-8"?>'
@@ -50,6 +52,34 @@ final class DfeXmlBuilder
             . $this->transmission($data, $mode)
             . Xml::element('RepositoryCode', $this->config->repositoryCode())
             . '</Dfe>';
+    }
+
+    /**
+     * Impede a emissão de um XML cujo conteúdo fiscal diverge do IUD.
+     *
+     * @param array{repositoryCode:int, issueDate:string, emitterNif:string, led:string,
+     *     documentTypeCode:string, documentNumber:string} $iud
+     * @param array<string, mixed> $document
+     */
+    private function assertIudMatchesDocument(array $iud, array $document, DocumentType $type): void
+    {
+        $expected = [
+            'repositoryCode' => $this->config->repositoryCode(),
+            'issueDate' => (string) $document['issueDate'],
+            'emitterNif' => $this->config->transmitterNif,
+            'led' => str_pad($this->config->transmitterLed, 5, '0', STR_PAD_LEFT),
+            'documentTypeCode' => $type->iudCode(),
+        ];
+
+        foreach ($expected as $field => $value) {
+            if ((string) $iud[$field] !== (string) $value) {
+                throw new ValidationException(
+                    'iud',
+                    "O campo {$field} do IUD não corresponde ao documento.",
+                    "xml.iud_{$field}_mismatch"
+                );
+            }
+        }
     }
 
     /**

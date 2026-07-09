@@ -32,6 +32,14 @@ final class Iud
         EfaturaConfig::assertNif($emitterNif, 'emitterNif');
 
         $date = self::normaliseDate($issueDate);
+        $year = (int) $date->format('Y');
+        if ($year < 2000 || $year > 2099) {
+            throw new ValidationException(
+                'issueDate',
+                'A data do IUD deve estar compreendida entre 2000 e 2099.',
+                'iud.issue_date_out_of_range'
+            );
+        }
         $payload = (string) $repositoryCode
             . $date->format('ymd')
             . $emitterNif
@@ -45,7 +53,23 @@ final class Iud
 
     public static function isValid(string $iud): bool
     {
-        if (preg_match('/^CV[0-9]{43}$/', $iud) !== 1) {
+        if (
+            preg_match(
+                '/^CV([1-3])(\d{2})(\d{2})(\d{2})([1-9]\d{8})(\d{5})(\d{2})(\d{9})(\d{10})(\d)$/',
+                $iud,
+                $parts
+            ) !== 1
+        ) {
+            return false;
+        }
+
+        if (!checkdate((int) $parts[3], (int) $parts[4], 2000 + (int) $parts[2])) {
+            return false;
+        }
+
+        try {
+            DocumentType::fromCode($parts[7]);
+        } catch (ValidationException) {
             return false;
         }
 
