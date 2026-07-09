@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kowts\Efatura\Domain\Data;
 
+use Kowts\Efatura\Domain\Decimal;
 use Kowts\Efatura\Domain\TaxType;
 
 /**
@@ -19,8 +20,8 @@ final class Tax
      */
     public function __construct(
         public readonly TaxType $type,
-        public readonly ?float $percentage,
-        public readonly ?float $total,
+        public readonly ?Decimal $percentage,
+        public readonly ?Decimal $total,
         public readonly ?string $exemptionReasonCode,
         array $data
     ) {
@@ -34,8 +35,8 @@ final class Tax
     {
         return new self(
             TaxType::from((string) $data['taxTypeCode']),
-            isset($data['taxPercentage']) ? (float) $data['taxPercentage'] : null,
-            isset($data['taxTotal']) ? (float) $data['taxTotal'] : null,
+            isset($data['taxPercentage']) ? Decimal::from($data['taxPercentage']) : null,
+            isset($data['taxTotal']) ? Decimal::from($data['taxTotal']) : null,
             isset($data['taxExemptionReasonCode']) ? (string) $data['taxExemptionReasonCode'] : null,
             $data
         );

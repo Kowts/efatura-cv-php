@@ -36,6 +36,13 @@
 - `validateFiscalReadiness(...)`: verifica contribuinte, software e autorização
   através dos contratos de consulta fiscal.
 
+### Valores decimais
+
+Preços, quantidades, impostos e totais são normalizados sem aritmética binária
+de ponto flutuante. A API por arrays devolve representações decimais em string;
+os DTOs expõem `Domain\Decimal`, que permite conversão para string e formatação
+através de `format()`.
+
 ### Certificados
 
 - `validateCertificate(...)`: verifica validade e correspondência da chave;

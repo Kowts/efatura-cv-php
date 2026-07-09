@@ -6,6 +6,7 @@ namespace Kowts\Efatura\Validation;
 
 use DateTimeImmutable;
 use Kowts\Efatura\Config\EfaturaConfig;
+use Kowts\Efatura\Domain\Decimal;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Exception\ValidationException;
 
@@ -17,8 +18,6 @@ use Kowts\Efatura\Exception\ValidationException;
  */
 final class DocumentValidator
 {
-    private const MONEY_TOLERANCE = 0.01;
-
     /**
      * @param array<string, mixed> $document
      * @return array<string, mixed>
@@ -215,6 +214,10 @@ final class DocumentValidator
                     'line.quantity_invalid'
                 );
             }
+            $line['quantity']['value'] = Decimal::normalise(
+                $line['quantity']['value'],
+                "lines.{$index}.quantity.value"
+            );
             if (!isset($line['item']) || !is_array($line['item']) || trim((string) ($line['item']['description'] ?? '')) === '') {
                 throw new ValidationException(
                     "lines.{$index}.item",
@@ -248,6 +251,9 @@ final class DocumentValidator
                         'O valor monetário da linha é inválido.',
                         'line.amount_invalid'
                     );
+                }
+                if (array_key_exists($amount, $line) && $line[$amount] !== null) {
+                    $line[$amount] = Decimal::normalise($line[$amount], "lines.{$index}.{$amount}");
                 }
             }
 
@@ -287,6 +293,18 @@ final class DocumentValidator
                     'tax.exemption_reason_required'
                 );
             }
+            foreach (['taxPercentage', 'taxTotal'] as $amount) {
+                if (array_key_exists($amount, $tax) && $tax[$amount] !== null) {
+                    if (!is_numeric($tax[$amount])) {
+                        throw new ValidationException(
+                            "{$field}.{$index}.{$amount}",
+                            'O valor decimal do imposto é inválido.',
+                            'tax.amount_invalid'
+                        );
+                    }
+                    $tax[$amount] = Decimal::normalise($tax[$amount], "{$field}.{$index}.{$amount}");
+                }
+            }
             $tax['taxTypeCode'] = $code;
             $taxes[] = $tax;
         }
@@ -305,13 +323,13 @@ final class DocumentValidator
             if (!isset($totals[$field]) || !is_numeric($totals[$field])) {
                 throw new ValidationException("totals.{$field}", "O total {$field} é obrigatório.", 'totals.required');
             }
-            $totals[$field] = (float) $totals[$field];
+            $totals[$field] = Decimal::normalise($totals[$field], "totals.{$field}");
         }
 
         if ($lines !== []) {
-            $priceExtension = 0.0;
-            $net = 0.0;
-            $tax = 0.0;
+            $priceExtension = 0;
+            $net = 0;
+            $tax = 0;
             foreach ($lines as $index => $line) {
                 if (($line['lineTypeCode'] ?? null) === 'I') {
                     continue;
@@ -326,11 +344,17 @@ final class DocumentValidator
                         );
                     }
                 }
-                $priceExtension += $sign * (float) $line['priceExtension'];
-                $net += $sign * (float) $line['netTotal'];
+                $priceExtension += $sign * Decimal::from(
+                    $line['priceExtension'],
+                    "lines.{$index}.priceExtension"
+                )->toScaledInteger(2);
+                $net += $sign * Decimal::from(
+                    $line['netTotal'],
+                    "lines.{$index}.netTotal"
+                )->toScaledInteger(2);
                 foreach ($line['taxes'] as $lineTax) {
                     if (($lineTax['taxTypeCode'] ?? null) !== 'NA' && isset($lineTax['taxTotal'])) {
-                        $tax += $sign * (float) $lineTax['taxTotal'];
+                        $tax += $sign * Decimal::from($lineTax['taxTotal'])->toScaledInteger(2);
                     }
                 }
             }
@@ -340,9 +364,17 @@ final class DocumentValidator
             $this->assertMoney($totals['taxTotalAmount'], $tax, 'totals.taxTotalAmount');
         }
 
-        $withholding = (float) ($totals['withholdingTaxTotalAmount'] ?? 0);
-        $rounding = (float) ($totals['payableRoundingAmount'] ?? 0);
-        $expectedPayable = $totals['netTotalAmount'] + $totals['taxTotalAmount'] - $withholding + $rounding;
+        foreach (['withholdingTaxTotalAmount', 'payableRoundingAmount'] as $optional) {
+            if (isset($totals[$optional])) {
+                $totals[$optional] = Decimal::normalise($totals[$optional], "totals.{$optional}");
+            }
+        }
+        $withholding = Decimal::from($totals['withholdingTaxTotalAmount'] ?? 0)->toScaledInteger(2);
+        $rounding = Decimal::from($totals['payableRoundingAmount'] ?? 0)->toScaledInteger(2);
+        $expectedPayable = Decimal::from($totals['netTotalAmount'])->toScaledInteger(2)
+            + Decimal::from($totals['taxTotalAmount'])->toScaledInteger(2)
+            - $withholding
+            + $rounding;
         $this->assertMoney($totals['payableAmount'], $expectedPayable, 'totals.payableAmount');
 
         return $totals;
@@ -357,7 +389,10 @@ final class DocumentValidator
             $type === DocumentType::ElectronicSalesReceipt
             && $document['receiver'] === null
             && is_array($document['totals'])
-            && ((float) $document['totals']['netTotalAmount'] + (float) $document['totals']['taxTotalAmount']) >= 20_000
+            && (
+                Decimal::from($document['totals']['netTotalAmount'])->toScaledInteger(2)
+                + Decimal::from($document['totals']['taxTotalAmount'])->toScaledInteger(2)
+            ) >= 2_000_000
         ) {
             throw new ValidationException(
                 'receiver',
@@ -555,9 +590,9 @@ final class DocumentValidator
         return !($value === null || $value === '' || $value === []);
     }
 
-    private function assertMoney(float $actual, float $expected, string $field): void
+    private function assertMoney(string $actual, int $expected, string $field): void
     {
-        if (abs(round($actual, 2) - round($expected, 2)) > self::MONEY_TOLERANCE) {
+        if (Decimal::from($actual, $field)->toScaledInteger(2) !== $expected) {
             throw new ValidationException(
                 $field,
                 'Os totais do documento não correspondem aos valores das linhas.',

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kowts\Efatura\Domain\Data;
 
+use Kowts\Efatura\Domain\Decimal;
+
 /**
  * Linha fiscal imutável.
  */
@@ -18,11 +20,11 @@ final class DocumentLine
      * @param array<string, mixed> $data
      */
     public function __construct(
-        public readonly float $quantity,
+        public readonly Decimal $quantity,
         public readonly string $unitCode,
-        public readonly ?float $price,
-        public readonly ?float $priceExtension,
-        public readonly ?float $netTotal,
+        public readonly ?Decimal $price,
+        public readonly ?Decimal $priceExtension,
+        public readonly ?Decimal $netTotal,
         public readonly array $taxes,
         public readonly array $item,
         array $data
@@ -43,11 +45,11 @@ final class DocumentLine
         ));
 
         return new self(
-            (float) $quantity['value'],
+            Decimal::from($quantity['value']),
             (string) $quantity['unitCode'],
-            isset($data['price']) ? (float) $data['price'] : null,
-            isset($data['priceExtension']) ? (float) $data['priceExtension'] : null,
-            isset($data['netTotal']) ? (float) $data['netTotal'] : null,
+            isset($data['price']) ? Decimal::from($data['price']) : null,
+            isset($data['priceExtension']) ? Decimal::from($data['priceExtension']) : null,
+            isset($data['netTotal']) ? Decimal::from($data['netTotal']) : null,
             $taxes,
             $data['item'],
             $data

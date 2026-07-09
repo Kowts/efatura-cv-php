@@ -18,9 +18,9 @@ final class FiscalDocumentDtoTest extends TestCase
         self::assertSame(DocumentType::ElectronicInvoice, $dto->type);
         self::assertSame('Emitente', $dto->emitter->name);
         self::assertSame('100200300', $dto->emitter->taxId?->value);
-        self::assertSame(1000.0, $dto->lines[0]->netTotal);
+        self::assertSame('1000', (string) $dto->lines[0]->netTotal);
         self::assertSame('IVA', $dto->lines[0]->taxes[0]->type->value);
-        self::assertSame(1150.0, $dto->totals?->payable);
+        self::assertSame('1150', (string) $dto->totals?->payable);
         self::assertSame('SERV-1', $dto->toArray()['lines'][0]['item']['emitterIdentification']);
     }
 }

@@ -8,6 +8,7 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use Kowts\Efatura\Domain\Decimal;
 use Kowts\Efatura\Domain\Data\FiscalDocument;
 use Kowts\Efatura\Exception\EfaturaException;
 
@@ -101,8 +102,14 @@ final class PdfDfaRenderer
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
-    private function money(float $value): string
+    private function money(Decimal|int|float|string $value): string
     {
-        return number_format($value, 2, ',', ' ');
+        $formatted = $value instanceof Decimal
+            ? $value->format(2)
+            : Decimal::from($value)->format(2);
+        [$integer, $fraction] = explode('.', $formatted, 2);
+        $integer = preg_replace('/\B(?=(\d{3})+(?!\d))/', ' ', $integer) ?? $integer;
+
+        return $integer . ',' . $fraction;
     }
 }
