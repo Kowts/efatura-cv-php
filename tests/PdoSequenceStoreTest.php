@@ -48,4 +48,61 @@ final class PdoSequenceStoreTest extends TestCase
             @unlink($path);
         }
     }
+
+    public function testProcessosConcorrentesNaoRepetemNumeros(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'efatura-concurrent-sequence-');
+        self::assertNotFalse($path);
+
+        try {
+            $store = new PdoSequenceStore(new PDO('sqlite:' . $path));
+            $store->createTable();
+            $outputs = $this->runWorkers('sequence', $path, 4, 25);
+            $numbers = [];
+            foreach ($outputs as $output) {
+                $values = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+                self::assertIsArray($values);
+                $numbers = array_merge($numbers, $values);
+            }
+            sort($numbers);
+
+            self::assertSame(range(1, 100), $numbers);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function runWorkers(
+        string $mode,
+        string $path,
+        int $workerCount,
+        int $iterations
+    ): array {
+        $processes = [];
+        $worker = dirname(__DIR__) . '/tools/persistence-worker.php';
+        for ($index = 0; $index < $workerCount; ++$index) {
+            $pipes = [];
+            $process = proc_open(
+                [PHP_BINARY, $worker, $mode, $path, (string) $iterations],
+                [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+                $pipes
+            );
+            self::assertIsResource($process);
+            $processes[] = [$process, $pipes];
+        }
+
+        $outputs = [];
+        foreach ($processes as [$process, $pipes]) {
+            $outputs[] = stream_get_contents($pipes[1]);
+            $error = stream_get_contents($pipes[2]);
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+            self::assertSame(0, proc_close($process), $error);
+        }
+
+        return $outputs;
+    }
 }

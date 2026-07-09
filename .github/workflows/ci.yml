@@ -58,3 +58,43 @@ jobs:
           php tools/check-coverage.php build/coverage.xml 60
       - name: Auditoria de dependências
         run: composer audit
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: efatura
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --host=127.0.0.1 --password=root"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: efatura
+          POSTGRES_PASSWORD: root
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready --username=postgres --dbname=efatura"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      EFATURA_TEST_MYSQL_DSN: mysql:host=127.0.0.1;port=3306;dbname=efatura
+      EFATURA_TEST_MYSQL_USER: root
+      EFATURA_TEST_MYSQL_PASSWORD: root
+      EFATURA_TEST_PGSQL_DSN: pgsql:host=127.0.0.1;port=5432;dbname=efatura
+      EFATURA_TEST_PGSQL_USER: postgres
+      EFATURA_TEST_PGSQL_PASSWORD: root
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, pdo_pgsql
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: php vendor/bin/phpunit tests/PdoDriverIntegrationTest.php
