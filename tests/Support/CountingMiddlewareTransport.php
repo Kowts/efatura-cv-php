@@ -10,6 +10,7 @@ use Kowts\Efatura\Http\SubmissionResult;
 final class CountingMiddlewareTransport implements MiddlewareTransport
 {
     public int $calls = 0;
+    public ?string $lastEndpointPath = null;
 
     public function submit(
         string $baseUrl,
@@ -18,6 +19,7 @@ final class CountingMiddlewareTransport implements MiddlewareTransport
         string $endpointPath = '/v1/dfe'
     ): SubmissionResult {
         ++$this->calls;
+        $this->lastEndpointPath = $endpointPath;
         return new SubmissionResult(true, 202, 'Accepted', [], '', []);
     }
 }

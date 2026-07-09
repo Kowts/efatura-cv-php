@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Kowts\Efatura\Tests;
 
+use DateTimeImmutable;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Domain\EventType;
 use Kowts\Efatura\Domain\Iud;
 use Kowts\Efatura\Exception\ValidationException;
+use Kowts\Efatura\Config\EfaturaConfig;
+use Kowts\Efatura\Efatura;
+use Kowts\Efatura\Infrastructure\Clock\FrozenClock;
 use Kowts\Efatura\Validation\EventValidator;
 use PHPUnit\Framework\TestCase;
 
@@ -56,6 +60,58 @@ final class EventValidatorTest extends TestCase
             'issueReasonDescription' => 'Teste.',
             'iuds' => [$iud],
             'range' => [],
+        ]);
+    }
+
+    public function testGeraValidaEEmpacotaEvento(): void
+    {
+        $efatura = new Efatura(
+            new EfaturaConfig(
+                transmitterNif: '100200300',
+                transmitterLed: '123',
+                softwareCode: 'EFATURAPHP',
+                softwareName: 'e-Fatura PHP',
+                softwareVersion: '0.1.0',
+                middlewareBaseUrl: 'https://middleware.example.test',
+                emitter: invoiceFixture()['emitter']
+            ),
+            clock: new FrozenClock(new DateTimeImmutable('2026-07-08T12:00:00-01:00'))
+        );
+        $eventId = $efatura->buildEventId('2026-07-08T12:00:00-01:00');
+        $iud = $efatura->buildIud(
+            '2026-07-08',
+            DocumentType::ElectronicInvoice,
+            1,
+            '1234567890'
+        );
+        $xml = $efatura->buildEventXml($eventId, [
+            'type' => EventType::FiscalDocumentCancellation,
+            'issueDateTime' => '2026-07-08T12:00:00-01:00',
+            'issueReasonDescription' => 'Documento emitido por engano.',
+            'iuds' => [$iud],
+        ]);
+
+        self::assertTrue($efatura->validateXml($xml)['valid']);
+        self::assertNotSame('', $efatura->buildEventZip([['eventId' => $eventId, 'xml' => $xml]]));
+    }
+
+    public function testRejeitaDataDeEventoNaoIso(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        (new EventValidator())->validate([
+            'type' => EventType::FiscalDocumentCancellation,
+            'issueDateTime' => 'amanhã',
+            'issueReasonDescription' => 'Formato inválido.',
+            'iuds' => [Iud::build(
+                3,
+                '2026-07-08',
+                '100200300',
+                '1',
+                DocumentType::ElectronicInvoice,
+                1,
+                '1234567890'
+            )],
         ]);
     }
 }

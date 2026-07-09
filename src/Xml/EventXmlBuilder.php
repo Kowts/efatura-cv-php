@@ -32,9 +32,22 @@ final class EventXmlBuilder
             throw new ValidationException('eventId', 'O identificador do evento é inválido.', 'event.id_invalid');
         }
         $event = $this->validator->validate($event);
+        $eventIdData = EventId::parse($eventId);
         /** @var EventType $type */
         $type = $event['type'];
         $issueDateTime = (string) $event['issueDateTime'];
+        $eventDate = new \DateTimeImmutable($issueDateTime);
+        if (
+            $eventIdData['repositoryCode'] !== $this->config->repositoryCode()
+            || $eventIdData['transmitterNif'] !== $this->config->transmitterNif
+            || $eventIdData['issueDateTime'] !== $eventDate->format('Y-m-d\TH:i:s')
+        ) {
+            throw new ValidationException(
+                'eventId',
+                'O identificador do evento não corresponde à transmissão.',
+                'event.id_mismatch'
+            );
+        }
 
         $target = '';
         if (is_array($event['iuds'] ?? null) && $event['iuds'] !== []) {

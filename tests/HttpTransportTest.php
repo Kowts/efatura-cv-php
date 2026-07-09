@@ -71,4 +71,25 @@ final class HttpTransportTest extends TestCase
             (string) $client->request?->getUri()
         );
     }
+
+    public function testSubmeteEventosNoEndpointConfigurado(): void
+    {
+        $transport = new CountingMiddlewareTransport();
+        $efatura = new Efatura(
+            new EfaturaConfig(
+                transmitterNif: '100200300',
+                transmitterLed: '123',
+                softwareCode: 'EFATURAPHP',
+                softwareName: 'e-Fatura PHP',
+                softwareVersion: '0.1.0',
+                middlewareBaseUrl: 'https://middleware.example.test',
+                transmitterKey: 'segredo',
+                middlewareEventPath: '/v1/events'
+            ),
+            middlewareTransport: $transport
+        );
+
+        self::assertTrue($efatura->submitEventZipResult('zip')->ok);
+        self::assertSame('/v1/events', $transport->lastEndpointPath);
+    }
 }

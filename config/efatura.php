@@ -12,8 +12,10 @@ return [
     'software_version' => env('EFATURA_SOFTWARE_VERSION', '1.0.0'),
     'middleware_base_url' => env('EFATURA_MIDDLEWARE_URL'),
     'middleware_dfe_path' => env('EFATURA_MIDDLEWARE_DFE_PATH', '/v1/dfe'),
+    'middleware_event_path' => env('EFATURA_MIDDLEWARE_EVENT_PATH', '/v1/event'),
     'platform_base_url' => env('EFATURA_PLATFORM_URL', 'https://services.efatura.cv'),
     'platform_dfe_path' => env('EFATURA_PLATFORM_DFE_PATH', '/v1/dfe'),
+    'platform_event_path' => env('EFATURA_PLATFORM_EVENT_PATH', '/v1/event'),
     'dfa_base_url' => env('EFATURA_DFA_URL', 'https://pe.efatura.cv/dfe/view'),
     'environment' => env('EFATURA_ENVIRONMENT', 'TEST'),
     'emitter' => [

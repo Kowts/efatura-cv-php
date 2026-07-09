@@ -21,6 +21,9 @@
 
 - `buildEventId(DateTimeInterface|string $date)`: cria o identificador;
 - `buildEventXml(string $id, array $event, EmissionMode $mode)`: cria `FDC` ou `UDN`.
+- `buildEventZip(array $files)`: cria o pacote ZIP de eventos;
+- `submitEventZipResult(...)`: submete eventos ao middleware;
+- `submitEventZipToPlatformResult(...)`: submete eventos directamente à plataforma.
 
 ### Comunicação
 

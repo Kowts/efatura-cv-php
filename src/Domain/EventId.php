@@ -42,4 +42,23 @@ final class EventId
             && (int) substr($parts[5], 2, 2) < 60
             && (int) substr($parts[5], 4, 2) < 60;
     }
+
+    /**
+     * @return array{country:string, repositoryCode:int, issueDateTime:string, transmitterNif:string}
+     */
+    public static function parse(string $eventId): array
+    {
+        if (!self::isValid($eventId)) {
+            throw new ValidationException('eventId', 'O identificador do evento é inválido.', 'event.id_invalid');
+        }
+
+        return [
+            'country' => substr($eventId, 0, 2),
+            'repositoryCode' => (int) substr($eventId, 2, 1),
+            'issueDateTime' => '20' . substr($eventId, 3, 2) . '-' . substr($eventId, 5, 2) . '-'
+                . substr($eventId, 7, 2) . 'T' . substr($eventId, 9, 2) . ':' . substr($eventId, 11, 2)
+                . ':' . substr($eventId, 13, 2),
+            'transmitterNif' => substr($eventId, 15, 9),
+        ];
+    }
 }

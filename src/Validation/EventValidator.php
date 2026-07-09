@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kowts\Efatura\Validation;
 
 use DateTimeImmutable;
+use DateTimeZone;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Domain\EventType;
 use Kowts\Efatura\Domain\Iud;
@@ -30,9 +31,8 @@ final class EventValidator
         }
 
         $issueDateTime = trim((string) ($event['issueDateTime'] ?? ''));
-        try {
-            $date = new DateTimeImmutable($issueDateTime);
-        } catch (\Exception) {
+        $date = $this->parseDateTime($issueDateTime);
+        if ($date === null) {
             throw new ValidationException(
                 'event.issueDateTime',
                 'A data e hora do evento devem estar em formato ISO válido.',
@@ -87,6 +87,26 @@ final class EventValidator
         $event['range'] = $range;
 
         return $event;
+    }
+
+    private function parseDateTime(string $value): ?DateTimeImmutable
+    {
+        $formats = str_ends_with($value, 'Z') || preg_match('/[+-]\d{2}:\d{2}$/', $value) === 1
+            ? ['!Y-m-d\TH:i:sP']
+            : ['!Y-m-d\TH:i:s'];
+        foreach ($formats as $format) {
+            $date = DateTimeImmutable::createFromFormat(
+                $format,
+                $value,
+                new DateTimeZone('Atlantic/Cape_Verde')
+            );
+            $errors = DateTimeImmutable::getLastErrors();
+            if ($date !== false && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))) {
+                return $date;
+            }
+        }
+
+        return null;
     }
 
     /**

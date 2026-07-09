@@ -30,6 +30,7 @@ use Kowts\Efatura\Infrastructure\Signing\XmlSignatureVerifier;
 use Kowts\Efatura\Infrastructure\Signing\XadesBesSigner;
 use Kowts\Efatura\Infrastructure\Validation\XsdValidator;
 use Kowts\Efatura\Packaging\DfeZip;
+use Kowts\Efatura\Packaging\EventZip;
 use Kowts\Efatura\Http\SubmissionResult;
 use Kowts\Efatura\Fiscal\FiscalReadinessService;
 use Kowts\Efatura\Contract\TaxpayerRegistryClient;
@@ -178,6 +179,14 @@ final class Efatura
     }
 
     /**
+     * @param list<array{eventId:string, xml:string}> $files
+     */
+    public function buildEventZip(array $files): string
+    {
+        return (new EventZip())->build($files);
+    }
+
+    /**
      * @return array{valid:bool, errors:list<array{message:string, line:int, column:int, code:int}>}
      */
     public function validateXml(string $xml): array
@@ -263,6 +272,50 @@ final class Efatura
             $this->config->transmitterKey,
             $zip,
             $this->config->middlewareDfePath
+        );
+    }
+
+    /**
+     * @return array{ok:bool, status:int, statusText:string, body:mixed, rawBody:string, headers:array<string, string>}
+     */
+    public function submitEventZip(string $zip): array
+    {
+        return $this->submitEventZipResult($zip)->toArray();
+    }
+
+    public function submitEventZipResult(string $zip, bool $allowResubmission = false): SubmissionResult
+    {
+        if ($this->config->transmitterKey === null || $this->config->transmitterKey === '') {
+            throw new ValidationException(
+                'transmitterKey',
+                'A chave do transmissor é obrigatória para submeter eventos ao middleware.',
+                'middleware.transmitter_key_required'
+            );
+        }
+        $this->claimSubmission('middleware-event', $zip, $allowResubmission);
+
+        return $this->middlewareTransport->submit(
+            $this->config->middlewareBaseUrl,
+            $this->config->transmitterKey,
+            $zip,
+            $this->config->middlewareEventPath
+        );
+    }
+
+    public function submitEventZipToPlatformResult(
+        string $zip,
+        string $accessToken,
+        ?string $baseUrl = null,
+        bool $allowResubmission = false
+    ): SubmissionResult {
+        $this->claimSubmission('platform-event', $zip, $allowResubmission);
+
+        return $this->platformTransport->submit(
+            $baseUrl ?? $this->config->platformBaseUrl,
+            $accessToken,
+            $this->config->repositoryCode(),
+            $zip,
+            $this->config->platformEventPath
         );
     }
 

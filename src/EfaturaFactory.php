@@ -36,7 +36,9 @@ final class EfaturaFactory
             dfaBaseUrl: (string) ($config['dfa_base_url'] ?? EfaturaConfig::DEFAULT_DFA_URL),
             environment: $environment,
             middlewareDfePath: (string) ($config['middleware_dfe_path'] ?? '/v1/dfe'),
-            platformDfePath: (string) ($config['platform_dfe_path'] ?? '/v1/dfe')
+            platformDfePath: (string) ($config['platform_dfe_path'] ?? '/v1/dfe'),
+            middlewareEventPath: (string) ($config['middleware_event_path'] ?? '/v1/event'),
+            platformEventPath: (string) ($config['platform_event_path'] ?? '/v1/event')
         ));
     }
 }

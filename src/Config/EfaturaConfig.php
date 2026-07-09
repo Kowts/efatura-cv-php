@@ -32,7 +32,9 @@ final class EfaturaConfig
         public readonly string $dfaBaseUrl = self::DEFAULT_DFA_URL,
         public readonly Environment $environment = Environment::Test,
         public readonly string $middlewareDfePath = '/v1/dfe',
-        public readonly string $platformDfePath = '/v1/dfe'
+        public readonly string $platformDfePath = '/v1/dfe',
+        public readonly string $middlewareEventPath = '/v1/event',
+        public readonly string $platformEventPath = '/v1/event'
     ) {
         self::assertNif($transmitterNif, 'transmitterNif');
         self::assertRequired($transmitterLed, 'transmitterLed');
@@ -44,6 +46,8 @@ final class EfaturaConfig
         self::assertUrl($dfaBaseUrl, 'dfaBaseUrl');
         self::assertEndpointPath($middlewareDfePath, 'middlewareDfePath');
         self::assertEndpointPath($platformDfePath, 'platformDfePath');
+        self::assertEndpointPath($middlewareEventPath, 'middlewareEventPath');
+        self::assertEndpointPath($platformEventPath, 'platformEventPath');
     }
 
     public function repositoryCode(): int
