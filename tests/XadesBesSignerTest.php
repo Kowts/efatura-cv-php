@@ -113,6 +113,38 @@ final class XadesBesSignerTest extends TestCase
         self::assertTrue($validation['valid'], implode("\n", array_column($validation['errors'], 'message')));
     }
 
+    public function testRejeitaAtaqueDeWrapping(): void
+    {
+        [$certificate, $privateKey] = $this->certificatePair();
+        $signed = (new XadesBesSigner())->sign(
+            '<Dfe xmlns="urn:cv:efatura:xsd:v1.0" Version="1.0" Id="SIGNED" DocumentTypeCode="1"/>',
+            $certificate,
+            $privateKey
+        );
+        $wrapped = '<Wrapper Id="ALTERED">' . preg_replace('/<\?xml[^>]+>/', '', $signed['xml']) . '</Wrapper>';
+
+        $verification = (new XmlSignatureVerifier())->verify($wrapped);
+
+        self::assertFalse($verification['valid']);
+        self::assertStringContainsString('filha directa', implode(' ', $verification['issues']));
+    }
+
+    public function testRejeitaIdsDuplicados(): void
+    {
+        [$certificate, $privateKey] = $this->certificatePair();
+        $signed = (new XadesBesSigner())->sign(
+            '<Dfe xmlns="urn:cv:efatura:xsd:v1.0" Version="1.0" Id="SIGNED" DocumentTypeCode="1">'
+                . '<ExtraFields><Duplicate Id="SIGNED">conteúdo</Duplicate></ExtraFields></Dfe>',
+            $certificate,
+            $privateKey
+        );
+
+        $verification = (new XmlSignatureVerifier())->verify($signed['xml']);
+
+        self::assertFalse($verification['valid']);
+        self::assertStringContainsString('não é único', implode(' ', $verification['issues']));
+    }
+
     /**
      * @return array{string, string}
      */
