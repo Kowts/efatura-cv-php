@@ -72,6 +72,19 @@ final class EfaturaTest extends TestCase
         $efatura->buildDfeXml($iud, invoiceFixture());
     }
 
+    public function testRejeitaZipCujoNomeNaoCorrespondeAoIdDoXml(): void
+    {
+        $efatura = $this->efatura();
+        $xmlIud = $efatura->buildIud('2026-02-08', DocumentType::ElectronicInvoice, 1, '1234567890');
+        $fileIud = $efatura->buildIud('2026-02-08', DocumentType::ElectronicInvoice, 2, '1234567890');
+        $xml = $efatura->buildDfeXml($xmlIud, invoiceFixture());
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('não corresponde');
+
+        $efatura->buildDfeZip([['iud' => $fileIud, 'xml' => $xml]]);
+    }
+
     private function efatura(): Efatura
     {
         return new Efatura(
