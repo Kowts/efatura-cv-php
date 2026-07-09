@@ -24,7 +24,7 @@ final class EfaturaConfig
         public readonly string $softwareCode,
         public readonly string $softwareName,
         public readonly string $softwareVersion,
-        public readonly string $middlewareBaseUrl,
+        public readonly ?string $middlewareBaseUrl = null,
         public readonly ?string $transmitterKey = null,
         public readonly ?string $defaultSerie = null,
         public readonly ?array $emitter = null,
@@ -41,7 +41,9 @@ final class EfaturaConfig
         self::assertRequired($softwareCode, 'softwareCode');
         self::assertRequired($softwareName, 'softwareName');
         self::assertRequired($softwareVersion, 'softwareVersion');
-        self::assertUrl($middlewareBaseUrl, 'middlewareBaseUrl');
+        if ($middlewareBaseUrl !== null) {
+            self::assertUrl($middlewareBaseUrl, 'middlewareBaseUrl');
+        }
         self::assertUrl($platformBaseUrl, 'platformBaseUrl');
         self::assertUrl($dfaBaseUrl, 'dfaBaseUrl');
         self::assertEndpointPath($middlewareDfePath, 'middlewareDfePath');
@@ -53,6 +55,19 @@ final class EfaturaConfig
     public function repositoryCode(): int
     {
         return $this->environment->repositoryCode();
+    }
+
+    public function middlewareBaseUrlOrFail(): string
+    {
+        if ($this->middlewareBaseUrl === null) {
+            throw new ValidationException(
+                'middlewareBaseUrl',
+                'O URL do middleware é obrigatório para esta operação.',
+                'middleware.base_url_required'
+            );
+        }
+
+        return $this->middlewareBaseUrl;
     }
 
     /**

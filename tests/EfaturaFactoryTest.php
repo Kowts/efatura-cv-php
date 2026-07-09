@@ -6,6 +6,7 @@ namespace Kowts\Efatura\Tests;
 
 use Kowts\Efatura\Domain\Environment;
 use Kowts\Efatura\EfaturaFactory;
+use Kowts\Efatura\Exception\ValidationException;
 use PHPUnit\Framework\TestCase;
 
 final class EfaturaFactoryTest extends TestCase
@@ -24,5 +25,21 @@ final class EfaturaFactoryTest extends TestCase
 
         self::assertSame(Environment::Homologation, $efatura->config->environment);
         self::assertSame(2, $efatura->config->repositoryCode());
+    }
+
+    public function testPermiteUsarAPlataformaSemConfigurarMiddleware(): void
+    {
+        $efatura = EfaturaFactory::fromArray([
+            'transmitter_nif' => '100200300',
+            'transmitter_led' => '123',
+            'software_code' => 'EFATURAPHP',
+            'software_name' => 'e-Fatura PHP',
+            'software_version' => '0.1.0',
+        ]);
+
+        self::assertNull($efatura->config->middlewareBaseUrl);
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('URL do middleware');
+        $efatura->submitDfeZipResult('zip');
     }
 }

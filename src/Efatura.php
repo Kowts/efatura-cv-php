@@ -278,6 +278,7 @@ final class Efatura
 
     public function submitDfeZipResult(string $zip, bool $allowResubmission = false): SubmissionResult
     {
+        $middlewareBaseUrl = $this->config->middlewareBaseUrlOrFail();
         if ($this->config->transmitterKey === null || $this->config->transmitterKey === '') {
             throw new ValidationException(
                 'transmitterKey',
@@ -290,7 +291,7 @@ final class Efatura
         return $this->submitSafely(
             'middleware',
             fn (): SubmissionResult => $this->middlewareTransport->submit(
-                $this->config->middlewareBaseUrl,
+                $middlewareBaseUrl,
                 $this->config->transmitterKey,
                 $zip,
                 $this->config->middlewareDfePath
@@ -308,6 +309,7 @@ final class Efatura
 
     public function submitEventZipResult(string $zip, bool $allowResubmission = false): SubmissionResult
     {
+        $middlewareBaseUrl = $this->config->middlewareBaseUrlOrFail();
         if ($this->config->transmitterKey === null || $this->config->transmitterKey === '') {
             throw new ValidationException(
                 'transmitterKey',
@@ -320,7 +322,7 @@ final class Efatura
         return $this->submitSafely(
             'middleware-event',
             fn (): SubmissionResult => $this->middlewareTransport->submit(
-                $this->config->middlewareBaseUrl,
+                $middlewareBaseUrl,
                 $this->config->transmitterKey,
                 $zip,
                 $this->config->middlewareEventPath

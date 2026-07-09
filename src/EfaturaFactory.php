@@ -28,7 +28,9 @@ final class EfaturaFactory
             softwareCode: (string) ($config['software_code'] ?? ''),
             softwareName: (string) ($config['software_name'] ?? ''),
             softwareVersion: (string) ($config['software_version'] ?? ''),
-            middlewareBaseUrl: (string) ($config['middleware_base_url'] ?? ''),
+            middlewareBaseUrl: isset($config['middleware_base_url'])
+                ? (string) $config['middleware_base_url']
+                : null,
             transmitterKey: isset($config['transmitter_key']) ? (string) $config['transmitter_key'] : null,
             defaultSerie: isset($config['default_serie']) ? (string) $config['default_serie'] : null,
             emitter: is_array($config['emitter'] ?? null) ? $config['emitter'] : null,

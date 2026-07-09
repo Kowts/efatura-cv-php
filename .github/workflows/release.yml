@@ -30,10 +30,17 @@ jobs:
             --format=zip \
             --dir=dist \
             --file="efatura-cv-${GITHUB_REF_NAME}"
+          mkdir -p dist/package
+          unzip -q "dist/efatura-cv-${GITHUB_REF_NAME}.zip" -d dist/package
+          composer install \
+            --working-dir=dist/package \
+            --no-dev \
+            --no-interaction \
+            --prefer-dist
       - name: Gerar SBOM CycloneDX
         uses: anchore/sbom-action@v0
         with:
-          path: .
+          path: dist/package
           format: cyclonedx-json
           output-file: dist/efatura-cv-${{ github.ref_name }}.sbom.cdx.json
           upload-artifact: false
