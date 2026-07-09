@@ -178,7 +178,11 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 - [Referência da API](docs/api.md)
 - [Conformidade](docs/conformidade.md)
 - [Assinatura e certificados](docs/assinatura.md)
-- [Exemplo completo](examples/invoice.php)
+- [Guia de produção](docs/guia-producao.md)
+- [Emissão em contingência](docs/contingencia.md)
+- [Laravel e Symfony](docs/frameworks.md)
+- [Exemplos completos](examples/README.md)
+- [Exemplo em PHP puro](examples/invoice.php)
 - [Exemplos dos tipos documentais](examples/document-types.php)
 - [Contribuir](CONTRIBUTING.md)
 
