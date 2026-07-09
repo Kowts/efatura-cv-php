@@ -20,14 +20,15 @@ criar pacotes ZIP e comunicar com serviços e-Fatura de Cabo Verde.
 - validação de NIF, entidades, linhas, impostos e reconciliação de totais;
 - emissão online e em contingência;
 - geração de XML compacto DFE v11;
-- eventos `FDC` e `UDN`;
+- ciclo de eventos `FDC` e `UDN`, incluindo XML, ZIP e submissão;
 - validação com os XSD oficiais de 27 de Maio de 2024;
 - assinatura XAdES-BES com RSA-SHA256;
 - validação de certificados e correspondência da chave privada;
 - pacotes ZIP Deflate com nomes `{IUD}.xml`;
-- sequências em memória ou transaccionais por PDO;
+- sequências e idempotência em memória ou transaccionais por PDO;
 - submissão por middleware e directamente à plataforma;
-- consultas fiscais externas através de contratos e PSR-18;
+- consultas fiscais, repetição segura e reconciliação através de PSR-18;
+- cálculos monetários com representação decimal exacta;
 - DFA em PDF com QR Code;
 - DTOs imutáveis e tipados, sem retirar a API por arrays;
 - integrações opcionais com Laravel e Symfony;
@@ -46,8 +47,8 @@ criar pacotes ZIP e comunicar com serviços e-Fatura de Cabo Verde.
 composer require kowts/efatura-cv
 ```
 
-Enquanto não existir uma versão estável no Packagist, pode usar o repositório
-Git directamente:
+Para instalar directamente do ramo de desenvolvimento, pode declarar o
+repositório Git:
 
 ```json
 {
