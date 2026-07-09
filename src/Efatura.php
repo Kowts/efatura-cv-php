@@ -16,6 +16,7 @@ use Kowts\Efatura\Contract\SubmissionRegistry;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Domain\Data\FiscalDocument;
 use Kowts\Efatura\Domain\EmissionMode;
+use Kowts\Efatura\Domain\Environment;
 use Kowts\Efatura\Domain\EventId;
 use Kowts\Efatura\Domain\Iud;
 use Kowts\Efatura\Exception\ValidationException;
@@ -63,6 +64,22 @@ final class Efatura
         private readonly Clock $clock = new SystemClock(),
         private readonly SubmissionRegistry $submissionRegistry = new InMemorySubmissionRegistry()
     ) {
+        if ($config->environment === Environment::Production) {
+            if ($sequenceStore instanceof InMemorySequenceStore) {
+                throw new ValidationException(
+                    'sequenceStore',
+                    'O ambiente de produção exige um armazenamento de sequências persistente.',
+                    'production.sequence_store_required'
+                );
+            }
+            if ($submissionRegistry instanceof InMemorySubmissionRegistry) {
+                throw new ValidationException(
+                    'submissionRegistry',
+                    'O ambiente de produção exige um registo de submissões persistente.',
+                    'production.submission_registry_required'
+                );
+            }
+        }
         $this->documentValidator = new DocumentValidator();
         $this->dfeXmlBuilder = new DfeXmlBuilder($config, $this->documentValidator);
         $this->eventXmlBuilder = new EventXmlBuilder($config);

@@ -85,6 +85,22 @@ final class EfaturaTest extends TestCase
         $efatura->buildDfeZip([['iud' => $fileIud, 'xml' => $xml]]);
     }
 
+    public function testProducaoRejeitaArmazenamentoApenasEmMemoria(): void
+    {
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('sequências persistente');
+
+        new Efatura(new EfaturaConfig(
+            transmitterNif: '100200300',
+            transmitterLed: '123',
+            softwareCode: 'EFATURAPHP',
+            softwareName: 'e-Fatura PHP',
+            softwareVersion: '0.1.0',
+            middlewareBaseUrl: 'https://middleware.example.test',
+            environment: Environment::Production
+        ));
+    }
+
     private function efatura(): Efatura
     {
         return new Efatura(

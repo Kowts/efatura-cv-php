@@ -41,6 +41,7 @@ desconhecido e confirme o estado fiscal antes de autorizar um reenvio.
 ```php
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
+use Kowts\Efatura\Infrastructure\Submission\PdoSubmissionRegistry;
 
 $pdo = new PDO(
     getenv('DATABASE_DSN') ?: '',
@@ -50,11 +51,18 @@ $pdo = new PDO(
 );
 
 $sequences = new PdoSequenceStore($pdo);
-$efatura = new Efatura($config, $sequences);
+$submissions = new PdoSubmissionRegistry($pdo);
+$efatura = new Efatura(
+    $config,
+    $sequences,
+    submissionRegistry: $submissions
+);
 ```
 
-Converta `PdoSequenceStore::createTable()` numa migração controlada. Não a
-execute em cada pedido HTTP.
+Converta `PdoSequenceStore::createTable()` e
+`PdoSubmissionRegistry::createTable()` em migrações controladas. Não as
+execute em cada pedido HTTP. O ambiente `PRODUCTION` recusa deliberadamente os
+armazenamentos em memória.
 
 ## Certificados
 
@@ -82,9 +90,8 @@ em relatórios de erro.
 ## Idempotência
 
 O registo incluído por omissão existe em memória e protege apenas a instância
-PHP actual. Em aplicações com vários processos, implemente
-`SubmissionRegistry` sobre armazenamento partilhado e imponha uma chave única
-ao digest da submissão.
+PHP actual. Use `PdoSubmissionRegistry` ou implemente `SubmissionRegistry`
+sobre outro armazenamento partilhado.
 
 ## Ambientes
 
