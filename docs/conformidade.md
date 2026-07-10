@@ -15,6 +15,7 @@
 | XAdES-BES RSA-SHA256 | Implementado | `XadesBesSigner` |
 | ZIP Deflate `{IUD}.xml` | Implementado | `DfeZip` |
 | Eventos FDC e UDN | Implementado | `EventXmlBuilder` |
+| Pedido de autorização de autofacturação | Implementado | `SelfBillingAuthorizationClient` e `Psr18FiscalAuthorityClient` |
 | Sequência transaccional | Implementado | `PdoSequenceStore` |
 | Endpoint de middleware | Configurável | `/v1/dfe` por omissão; confirmar no ambiente homologado |
 | Endpoint de plataforma | Configurável | `/v1/dfe` ou `/v1/dfes`, conforme o serviço contratado |

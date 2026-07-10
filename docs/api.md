@@ -39,6 +39,38 @@
 - `validateFiscalReadiness(...)`: verifica contribuinte, software e autorização
   através dos contratos de consulta fiscal.
 
+### Autofacturação
+
+O manual técnico v11.0 exige que o comprador peça previamente uma autorização
+ao vendedor através do endpoint `/v1/dfe/self-billing/authorize`, enviando:
+
+- `taxId`: NIF CV do vendedor;
+- `documentTypeCode`: tipo de DFE permitido para autofacturação (`1`, `2`, `4`,
+  `5`, `6` ou `8`);
+- `mobilePhoneNumber`: telemóvel do vendedor;
+- `totalAmount`: total a pagar do DFE.
+
+Use `Contract\SelfBillingAuthorizationClient` ou a implementação
+`Infrastructure\Fiscal\Psr18FiscalAuthorityClient::authorizeSelfBilling(...)`.
+O resultado devolve, quando disponível, `authorizationId`, tempo de expiração,
+`iud`, `serie`, `ledCode` e `documentNumber`. O código recebido pelo vendedor
+por SMS/email deve depois ser indicado no bloco `selfBilling` do documento:
+
+```php
+$authorization = $fiscalClient->authorizeSelfBilling(
+    sellerTaxId: '900800700',
+    documentType: DocumentType::ElectronicInvoice,
+    mobilePhoneNumber: '9911122',
+    totalAmount: '1150.00',
+    accessToken: $token
+);
+
+$document['selfBilling'] = [
+    'authorizationId' => $authorization->authorizationId,
+    'authorizationCode' => $codigoRecebidoPeloVendedor,
+];
+```
+
 ### Valores decimais
 
 Preços, quantidades, impostos e totais são normalizados sem aritmética binária
