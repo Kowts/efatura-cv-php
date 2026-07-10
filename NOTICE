@@ -1,9 +1,5 @@
 Este projecto inclui artefactos XSD oficiais do sistema e-Fatura de Cabo Verde,
 publicados em efatura.cv, na versão datada de 27 de Maio de 2024.
 
-A arquitectura e alguns comportamentos foram estudados a partir do projecto
-@akira-io/efatura (https://github.com/akira-io/node-efatura), disponibilizado
-sob as licenças MIT e Apache-2.0.
-
 Este pacote não é um produto oficial da DNRE e a sua utilização não substitui
 a homologação do software de facturação nem os testes no ambiente oficial.

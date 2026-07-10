@@ -198,10 +198,7 @@ oficial.
 
 ## Créditos
 
-O desenho foi inspirado por
-[`@akira-io/efatura`](https://github.com/akira-io/node-efatura), distribuído
-sob MIT/Apache-2.0. Os XSD incluídos são os artefactos do sistema e-Fatura de
-Cabo Verde.
+Os XSD incluídos são os artefactos do sistema e-Fatura de Cabo Verde.
 
 ## Licença
 
