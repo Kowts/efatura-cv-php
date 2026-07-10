@@ -36,7 +36,8 @@ final class PdoSequenceStore implements SequenceStore
         $updatedAt = gmdate(DATE_ATOM);
 
         return match ($driver) {
-            'sqlite', 'pgsql' => $this->nextWithReturning($key, $updatedAt),
+            'sqlite' => $this->nextWithReturning($key, $updatedAt),
+            'pgsql' => $this->nextWithPostgreSql($key, $updatedAt),
             'mysql' => $this->nextWithMySql($key, $updatedAt),
             default => $this->nextWithTransaction($key, $updatedAt),
         };
@@ -49,6 +50,25 @@ final class PdoSequenceStore implements SequenceStore
             . ' VALUES (:scope, 1, :updated)'
             . ' ON CONFLICT(scope_key) DO UPDATE SET'
             . ' current_value = current_value + 1, updated_at = excluded.updated_at'
+            . ' RETURNING current_value'
+        );
+        $statement->execute(['scope' => $key, 'updated' => $updatedAt]);
+        $value = $statement->fetchColumn();
+        if ($value === false) {
+            throw new \RuntimeException('A base de dados não devolveu o próximo número fiscal.');
+        }
+
+        return (int) $value;
+    }
+
+    private function nextWithPostgreSql(string $key, string $updatedAt): int
+    {
+        $table = $this->safeTable();
+        $statement = $this->pdo->prepare(
+            "INSERT INTO {$table} (scope_key, current_value, updated_at)"
+            . ' VALUES (:scope, 1, :updated)'
+            . ' ON CONFLICT(scope_key) DO UPDATE SET'
+            . " current_value = {$table}.current_value + 1, updated_at = excluded.updated_at"
             . ' RETURNING current_value'
         );
         $statement->execute(['scope' => $key, 'updated' => $updatedAt]);
