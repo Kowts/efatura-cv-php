@@ -1,7 +1,7 @@
 # e-Fatura CV para PHP
 
 <p align="center">
-  <img src="assets/efatura-cv-hero.svg" alt="e-Fatura CV para PHP" width="860">
+  <img src="assets/efatura-cv-hero.png" alt="e-Fatura CV para PHP" width="960">
 </p>
 
 [![Testes](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml/badge.svg)](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml)
