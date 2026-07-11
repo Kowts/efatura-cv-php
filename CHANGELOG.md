@@ -7,6 +7,48 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [0.3.0] - 2026-07-11
+
+### Adicionado
+
+- `EfaturaComponent` para Yii2 passa a aceitar `factory` personalizada para
+  construir `Efatura` com dependências persistentes;
+- `EfaturaConfig::fromArray()` para reutilizar a mesma configuração de
+  frameworks ao construir instâncias manuais;
+- guia fiscal completo para Yii2 com `web.php`, `console.php`, migrações,
+  `PdoSequenceStore`, `PdoSubmissionRegistry`, emissão, IUD, submissão,
+  reconciliação, contingência, PDF e exemplo com `ActiveRecord`;
+- referência automática da API em `docs/api-reference.md`, gerada por
+  `composer docs:api`;
+- validação da referência automática no CI com `composer docs:api:check`;
+- job CI específico com Yii2 real para confirmar compatibilidade da bridge;
+- job CI de dependências mínimas e recentes para detectar incompatibilidades
+  com os limites suportados pelo Composer;
+- testes da factory Yii2 com framework real, garantindo que a factory é
+  executada apenas uma vez;
+- badges de cobertura mínima, PHPStan, Aikido package health e estado beta;
+- templates de issues para bugs de integração e questões fiscais/conformidade;
+- imagem de topo e fluxo Mermaid de emissão com decisões em `docs/arquitectura.md`.
+
+### Alterado
+
+- documentação Yii2 passa a destacar que o armazenamento em memória é apenas
+  para desenvolvimento e testes;
+- `EfaturaFactory::fromArray()` reutiliza `EfaturaConfig::fromArray()`;
+- `EfaturaComponent` passa a expor `setFactory()`/`getFactory()` em vez de
+  depender de propriedade pública `mixed`;
+- README e NOTICE deixam de referenciar projectos externos, mantendo a
+  identidade própria do pacote.
+
+### Corrigido
+
+- compatibilidade com dependências mínimas suportadas, incluindo PHPStan 1.x,
+  Dompdf 2.x e PSR HTTP Message 1.x;
+- query PostgreSQL de `PdoSequenceStore` deixou de usar referência ambígua à
+  coluna `current_value`;
+- documentação e badges do README foram ajustados para evitar links ou sintaxe
+  ambígua.
+
 ## [0.2.1] - 2026-07-11
 
 ### Alterado
@@ -51,7 +93,8 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - coerência semântica do IUD confirmada no XML e nos pacotes ZIP;
 - falhas de transporte são tratadas como submissões de estado incerto.
 
-[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.1...HEAD
+[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Kowts/efatura-cv-php/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Kowts/efatura-cv-php/releases/tag/v0.1.0

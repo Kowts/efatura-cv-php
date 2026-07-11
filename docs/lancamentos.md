@@ -11,6 +11,14 @@ O projecto adopta Versionamento Semântico. A versão não é escrita em
 4. Crie uma tag anotada no formato `vX.Y.Z`.
 5. Envie a tag para o GitHub.
 
+Exemplo para a versão actual:
+
+```bash
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin main
+git push origin v0.3.0
+```
+
 O workflow de release volta a validar o projecto e publica:
 
 - arquivo Composer sem dependências de desenvolvimento;
@@ -23,7 +31,7 @@ O workflow de release volta a validar o projecto e publica:
 
 ```bash
 sha256sum --check SHA256SUMS
-gh attestation verify efatura-cv-v0.1.0.zip \
+gh attestation verify efatura-cv-v0.3.0.zip \
   --repo Kowts/efatura-cv-php
 ```
 
