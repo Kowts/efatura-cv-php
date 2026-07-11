@@ -4,6 +4,7 @@
 [![PHP](https://img.shields.io/badge/PHP-%5E8.1-777BB4.svg)](https://www.php.net/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 [![Packagist](https://img.shields.io/packagist/v/kowts/efatura-cv.svg)](https://packagist.org/packages/kowts/efatura-cv)
+![Status](https://img.shields.io/badge/status-beta-orange.svg)
 
 Biblioteca PHP independente de frameworks para validar documentos fiscais,
 gerar XML DFE v11, validar com os XSD oficiais, assinar com XAdES-BES,
