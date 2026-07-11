@@ -7,10 +7,17 @@
     "keywords": [
         "cabo-verde",
         "efatura",
+        "efatura-cv",
         "faturacao",
         "fatura-eletronica",
+        "documentos-fiscais",
         "dnre",
-        "xades"
+        "xades",
+        "xades-bes",
+        "xml-signature",
+        "laravel",
+        "symfony",
+        "yii2"
     ],
     "authors": [
         {

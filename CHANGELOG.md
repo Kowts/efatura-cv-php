@@ -7,6 +7,13 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [0.2.1] - 2026-07-11
+
+### Alterado
+
+- keywords Composer/Packagist alargadas para melhorar a descoberta por
+  `efatura-cv`, documentos fiscais, XAdES-BES e integrações Laravel, Symfony e Yii2.
+
 ## [0.2.0] - 2026-07-10
 
 ### Adicionado
@@ -44,6 +51,7 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - coerência semântica do IUD confirmada no XML e nos pacotes ZIP;
 - falhas de transporte são tratadas como submissões de estado incerto.
 
-[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.0...HEAD
+[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Kowts/efatura-cv-php/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Kowts/efatura-cv-php/releases/tag/v0.1.0
