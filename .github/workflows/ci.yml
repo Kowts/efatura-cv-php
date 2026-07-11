@@ -61,6 +61,30 @@ jobs:
       - name: Auditoria de dependências
         run: composer audit
 
+  dependency-range:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.1'
+            composer_update_flags: '--prefer-lowest --prefer-stable'
+            label: dependências mínimas
+          - php: '8.4'
+            composer_update_flags: ''
+            label: dependências mais recentes
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, gd, json, libxml, openssl, pdo_sqlite, zip
+          coverage: none
+      - name: Resolver ${{ matrix.label }}
+        run: composer update ${{ matrix.composer_update_flags }} --no-interaction --prefer-dist
+      - run: composer validate --strict
+      - run: composer check
+
   yii2:
     runs-on: ubuntu-latest
     steps:
