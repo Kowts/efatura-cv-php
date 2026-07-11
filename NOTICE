@@ -1,5 +1,15 @@
+e-Fatura CV para PHP
+Copyright (c) 2026 Kowts
+Licença: MIT
+
 Este projecto inclui artefactos XSD oficiais do sistema e-Fatura de Cabo Verde,
-publicados em efatura.cv, na versão datada de 27 de Maio de 2024.
+publicados em efatura.cv, na versão técnica datada de 27 de Maio de 2024.
+
+Os ficheiros XSD são redistribuídos apenas para validação local dos documentos
+fiscais electrónicos gerados pela biblioteca. A sua inclusão não implica
+aprovação, certificação, endosso ou manutenção por parte da DNRE ou de qualquer
+entidade pública cabo-verdiana.
 
 Este pacote não é um produto oficial da DNRE e a sua utilização não substitui
-a homologação do software de facturação nem os testes no ambiente oficial.
+a homologação do software de facturação, a validação no ambiente oficial, nem o
+cumprimento das obrigações fiscais aplicáveis ao utilizador final.
