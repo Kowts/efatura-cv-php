@@ -5,6 +5,8 @@
 </p>
 
 [![Testes](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml/badge.svg)](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml)
+[![Cobertura](https://img.shields.io/badge/cobertura-%E2%89%A560%25-brightgreen.svg)](https://github.com/Kowts/efatura-cv-php/actions/workflows/ci.yml)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%208-4e9a06.svg)](phpstan.neon.dist)
 [![PHP](https://img.shields.io/badge/PHP-%5E8.1-777BB4.svg)](https://www.php.net/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 [![Packagist](https://img.shields.io/packagist/v/kowts/efatura-cv.svg)](https://packagist.org/packages/kowts/efatura-cv)
