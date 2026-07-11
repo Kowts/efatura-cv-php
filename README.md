@@ -234,6 +234,7 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 - [Guia de produção](docs/guia-producao.md)
 - [Emissão em contingência](docs/contingencia.md)
 - [Laravel, Symfony e Yii2](docs/frameworks.md)
+- [Guia fiscal completo para Yii2](docs/yii2.md)
 - [Lançamentos e verificação](docs/lancamentos.md)
 - [Exemplos completos](examples/README.md)
 - [Exemplo em PHP puro](examples/invoice.php)

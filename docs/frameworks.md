@@ -137,3 +137,7 @@ $efatura = Yii::$app->efatura->client;
 
 Se preferir registar o componente durante o arranque, use
 `Kowts\Efatura\Bridge\Yii2\EfaturaBootstrap` e ajuste `componentId`/`config`.
+
+Para uma integração fiscal completa com migrações, sequência persistente,
+idempotência, submissão, reconciliação, contingência, PDF e exemplo com
+`ActiveRecord`, consulte [Integração fiscal completa com Yii2](yii2.md).
