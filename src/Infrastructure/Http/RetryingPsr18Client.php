@@ -6,6 +6,7 @@ namespace Kowts\Efatura\Infrastructure\Http;
 
 use Closure;
 use InvalidArgumentException;
+use LogicException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestInterface;
@@ -47,7 +48,7 @@ final class RetryingPsr18Client implements ClientInterface
             return $this->client->sendRequest($request);
         }
 
-        for ($attempt = 1;; $attempt++) {
+        for ($attempt = 1; $attempt <= $this->maxAttempts; $attempt++) {
             try {
                 $response = $this->client->sendRequest($request);
             } catch (ClientExceptionInterface $exception) {
@@ -66,6 +67,8 @@ final class RetryingPsr18Client implements ClientInterface
             }
             ($this->sleeper)($this->retryAfter($response) ?? $this->delay($attempt));
         }
+
+        throw new LogicException('A política de repetição HTTP terminou sem resposta.');
     }
 
     private function isIdempotent(RequestInterface $request): bool

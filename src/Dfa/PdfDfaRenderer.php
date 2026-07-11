@@ -41,7 +41,7 @@ final class PdfDfaRenderer
         );
         $pdf->render();
 
-        return new DfaDocument($pdf->output(), 'application/pdf', $iud . '.pdf');
+        return new DfaDocument((string) $pdf->output(), 'application/pdf', $iud . '.pdf');
     }
 
     private function html(

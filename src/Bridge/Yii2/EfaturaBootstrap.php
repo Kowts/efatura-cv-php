@@ -51,15 +51,15 @@ final class EfaturaBootstrap implements BootstrapInterface
             !$this->registerContainer
             || !class_exists(\Yii::class)
             || !isset(\Yii::$container)
-            || !is_callable([\Yii::$container, 'setSingleton'])
+            || !is_object(\Yii::$container)
+            || !method_exists(\Yii::$container, 'setSingleton')
             || !is_callable([$app, 'get'])
         ) {
             return;
         }
 
         $componentId = $this->componentId;
-        $setSingleton = [\Yii::$container, 'setSingleton'];
-        $setSingleton(Efatura::class, static function () use ($app, $componentId): Efatura {
+        \Yii::$container->setSingleton(Efatura::class, static function () use ($app, $componentId): Efatura {
             $component = $app->get($componentId);
             if (!$component instanceof EfaturaComponent) {
                 throw new InvalidArgumentException('O componente e-Fatura registado na aplicação Yii2 é inválido.');
