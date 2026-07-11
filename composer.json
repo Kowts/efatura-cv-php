@@ -76,6 +76,11 @@
         "test": "phpunit",
         "analyse": "phpstan analyse",
         "cs": "phpcs",
+        "docs:api": "@php tools/generate-api-docs.php",
+        "docs:api:check": [
+            "@docs:api",
+            "git diff --exit-code docs/api-reference.md"
+        ],
         "check": [
             "@cs",
             "@analyse",

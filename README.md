@@ -233,6 +233,7 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 
 - [Arquitectura](docs/arquitectura.md)
 - [Referência da API](docs/api.md)
+- [Referência automática da API](docs/api-reference.md)
 - [Conformidade](docs/conformidade.md)
 - [Assinatura e certificados](docs/assinatura.md)
 - [Guia de produção](docs/guia-producao.md)
