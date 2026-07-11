@@ -8,7 +8,7 @@
 [![PHP](https://img.shields.io/badge/PHP-%5E8.1-777BB4.svg)](https://www.php.net/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
 [![Packagist](https://img.shields.io/packagist/v/kowts/efatura-cv.svg)](https://packagist.org/packages/kowts/efatura-cv)
-[![Aikido package health](https://img.shields.io/badge/Aikido-package%20health-6f5bf4.svg)](https://intel.aikido.dev/packages/packagist/kowts/efatura-cv)
+[![Aikido package health](<https://img.shields.io/badge/Aikido-package%20health-6f5bf4.svg>)](https://intel.aikido.dev/packages/packagist/kowts/efatura-cv)
 ![Status](https://img.shields.io/badge/status-beta-orange.svg)
 
 Biblioteca PHP independente de frameworks para validar documentos fiscais,
@@ -289,9 +289,10 @@ oficial.
 
 ## Créditos
 
-O desenho foi inspirado por
+A arquitectura e alguns comportamentos foram inspirado por
 [`@akira-io/efatura`](https://github.com/akira-io/node-efatura), distribuído
-sob MIT/Apache-2.0. Os XSD incluídos são os artefactos do sistema e-Fatura de
+sob MIT/Apache-2.0.
+Os XSD incluídos são os artefactos do sistema e-Fatura de
 Cabo Verde.
 
 ## Licença
