@@ -50,19 +50,25 @@ flowchart TD
 
     subgraph PREP["1. Preparação fiscal"]
         CONFIG["Configuração<br/>NIF, LED, software e ambiente"]
+        MODE{"Emissão<br/>online?"}
+        CONT["Dados de contingência<br/>IUC, motivo e data"]
         SEQ["Sequência PDO<br/>número fiscal sem duplicados"]
         IUD["IUD válido<br/>45 caracteres + controlo"]
     end
 
     subgraph DFE["2. Documento electrónico"]
         DOC["DTO ou array<br/>linhas, impostos e totais"]
+        RULES{"Regras fiscais<br/>coerentes?"}
         XML["XML DFE v11<br/>namespace oficial"]
-        XSD["Validação XSD<br/>artefactos oficiais"]
+        XSD{"XML válido<br/>no XSD oficial?"}
+        FIX["Corrigir dados<br/>antes de emitir"]
     end
 
     subgraph SEC["3. Segurança e pacote"]
         CERT["Certificado digital<br/>PEM ou PKCS#12"]
+        CERTOK{"Certificado<br/>válido?"}
         SIGN["Assinatura<br/>XAdES-BES RSA-SHA256"]
+        SIGOK{"Assinatura<br/>verificada?"}
         ZIP["ZIP Deflate<br/>{IUD}.xml"]
     end
 
@@ -71,14 +77,32 @@ flowchart TD
         MID["Middleware<br/>chave do transmissor"]
         PLATFORM["Plataforma e-Fatura<br/>OAuth + repositório"]
         RESULT["Resposta normalizada<br/>JSON/XML"]
+        ACCEPTED{"Aceite pela<br/>autoridade?"}
         RECON["Idempotência<br/>e reconciliação"]
+        UNCERTAIN["Estado incerto<br/>consultar antes de reenviar"]
+        STORE["Guardar IUD, XML,<br/>ZIP e resposta"]
     end
 
-    APP --> CONFIG --> SEQ --> IUD --> DOC --> XML --> XSD --> SIGN --> ZIP --> ROUTE
-    CERT --> SIGN
-    ROUTE --> MID --> RESULT
-    ROUTE --> PLATFORM --> RESULT
-    RESULT --> RECON
+    APP --> CONFIG --> MODE
+    MODE -- "Sim" --> SEQ
+    MODE -- "Não / offline" --> CONT --> SEQ
+    SEQ --> IUD --> DOC --> RULES
+    RULES -- "Não" --> FIX --> DOC
+    RULES -- "Sim" --> XML --> XSD
+    XSD -- "Não" --> FIX
+    XSD -- "Sim" --> CERTOK
+    CERT --> CERTOK
+    CERTOK -- "Não" --> FIX
+    CERTOK -- "Sim" --> SIGN --> SIGOK
+    SIGOK -- "Não" --> FIX
+    SIGOK -- "Sim" --> ZIP --> ROUTE
+    ROUTE -- "Middleware" --> MID --> RESULT
+    ROUTE -- "Plataforma" --> PLATFORM --> RESULT
+    RESULT --> ACCEPTED
+    ACCEPTED -- "Sim" --> STORE
+    ACCEPTED -- "Não" --> RECON
+    ACCEPTED -- "Sem resposta" --> UNCERTAIN --> RECON
+    RECON --> STORE
 
     classDef app fill:#0f2f5f,stroke:#2f80ed,color:#fff,stroke-width:2px;
     classDef prep fill:#f8fafc,stroke:#3b82f6,color:#0f172a;
@@ -86,13 +110,17 @@ flowchart TD
     classDef sec fill:#ecfdf5,stroke:#10b981,color:#0f172a;
     classDef send fill:#f5f3ff,stroke:#8b5cf6,color:#0f172a;
     classDef decision fill:#111827,stroke:#facc15,color:#fff,stroke-width:2px;
+    classDef warn fill:#fff1f2,stroke:#ef4444,color:#7f1d1d;
+    classDef done fill:#ecfdf5,stroke:#059669,color:#064e3b,stroke-width:2px;
 
     class APP app;
-    class CONFIG,SEQ,IUD prep;
-    class DOC,XML,XSD dfe;
+    class CONFIG,CONT,SEQ,IUD prep;
+    class DOC,XML dfe;
     class CERT,SIGN,ZIP sec;
-    class MID,PLATFORM,RESULT,RECON send;
-    class ROUTE decision;
+    class MID,PLATFORM,RESULT,RECON,UNCERTAIN send;
+    class MODE,RULES,XSD,CERTOK,SIGOK,ROUTE,ACCEPTED decision;
+    class FIX warn;
+    class STORE done;
 ```
 
 ## Requisitos
