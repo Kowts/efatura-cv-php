@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kowts\Efatura\Bridge\Yii2;
 
 use InvalidArgumentException;
+use Kowts\Efatura\Efatura;
 use yii\base\BootstrapInterface;
 
 /**
@@ -13,6 +14,7 @@ use yii\base\BootstrapInterface;
 final class EfaturaBootstrap implements BootstrapInterface
 {
     public string $componentId = 'efatura';
+    public bool $registerContainer = true;
 
     /**
      * Configuração aceite por `EfaturaComponent`.
@@ -33,13 +35,37 @@ final class EfaturaBootstrap implements BootstrapInterface
             throw new InvalidArgumentException('O bootstrap e-Fatura exige uma aplicação Yii2 compatível.');
         }
         $has = [$app, 'has'];
-        if ($has($this->componentId)) {
+        if (!$has($this->componentId)) {
+            $component = $this->config;
+            $component['class'] ??= EfaturaComponent::class;
+            $set = [$app, 'set'];
+            $set($this->componentId, $component);
+        }
+
+        $this->registerInContainer($app);
+    }
+
+    private function registerInContainer(object $app): void
+    {
+        if (
+            !$this->registerContainer
+            || !class_exists(\Yii::class)
+            || !isset(\Yii::$container)
+            || !is_callable([\Yii::$container, 'setSingleton'])
+            || !is_callable([$app, 'get'])
+        ) {
             return;
         }
 
-        $component = $this->config;
-        $component['class'] ??= EfaturaComponent::class;
-        $set = [$app, 'set'];
-        $set($this->componentId, $component);
+        $componentId = $this->componentId;
+        $setSingleton = [\Yii::$container, 'setSingleton'];
+        $setSingleton(Efatura::class, static function () use ($app, $componentId): Efatura {
+            $component = $app->get($componentId);
+            if (!$component instanceof EfaturaComponent) {
+                throw new InvalidArgumentException('O componente e-Fatura registado na aplicação Yii2 é inválido.');
+            }
+
+            return $component->getClient();
+        });
     }
 }

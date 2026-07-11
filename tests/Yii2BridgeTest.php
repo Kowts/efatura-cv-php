@@ -14,6 +14,11 @@ use PHPUnit\Framework\TestCase;
 
 final class Yii2BridgeTest extends TestCase
 {
+    public static function setUpBeforeClass(): void
+    {
+        self::loadYii2StubsWhenFrameworkIsAbsent();
+    }
+
     public function testComponenteCriaClienteEEncaminhaChamadas(): void
     {
         $component = new EfaturaComponent([
@@ -54,5 +59,66 @@ final class Yii2BridgeTest extends TestCase
         self::assertCount(1, $app->components);
         self::assertSame(EfaturaComponent::class, $app->components['efatura']['class']);
         self::assertSame('100200300', $app->components['efatura']['config']['transmitter_nif']);
+    }
+
+    public function testIntegraComAplicacaoYii2RealQuandoDisponivel(): void
+    {
+        if (!class_exists(\yii\console\Application::class)) {
+            self::markTestSkipped('Yii2 real não está instalado neste ambiente.');
+        }
+
+        $previousApp = \Yii::$app;
+        $app = null;
+        try {
+            $app = new \yii\console\Application([
+                'id' => 'efatura-cv-test',
+                'basePath' => dirname(__DIR__),
+            ]);
+            $bootstrap = new EfaturaBootstrap();
+            $bootstrap->config = ['config' => self::validConfig()];
+            $bootstrap->bootstrap($app);
+
+            self::assertInstanceOf(EfaturaComponent::class, $app->get('efatura'));
+            self::assertSame($app->get('efatura'), $app->efatura);
+            self::assertInstanceOf(Efatura::class, $app->efatura->client);
+            self::assertSame($app->efatura->client, \Yii::$container->get(Efatura::class));
+        } finally {
+            if ($app instanceof \yii\console\Application && method_exists($app->errorHandler, 'unregister')) {
+                $app->errorHandler->unregister();
+            }
+            \Yii::$app = $previousApp;
+            if (method_exists(\Yii::$container, 'clear')) {
+                \Yii::$container->clear(Efatura::class);
+            }
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function validConfig(): array
+    {
+        return [
+            'transmitter_nif' => '100200300',
+            'transmitter_led' => '123',
+            'software_code' => 'EFATURAPHP',
+            'software_name' => 'e-Fatura PHP',
+            'software_version' => '0.1.0',
+        ];
+    }
+
+    private static function loadYii2StubsWhenFrameworkIsAbsent(): void
+    {
+        $yiiBootstrap = dirname(__DIR__) . '/vendor/yiisoft/yii2/Yii.php';
+        if (!class_exists('Yii') && is_file($yiiBootstrap)) {
+            require_once $yiiBootstrap;
+        }
+
+        if (class_exists(\yii\base\Component::class) && interface_exists(\yii\base\BootstrapInterface::class)) {
+            return;
+        }
+
+        require_once __DIR__ . '/Stubs/Yii2/base/Component.php';
+        require_once __DIR__ . '/Stubs/Yii2/base/BootstrapInterface.php';
     }
 }

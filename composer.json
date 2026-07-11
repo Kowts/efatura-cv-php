@@ -66,8 +66,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Kowts\\Efatura\\Tests\\": "tests/",
-            "yii\\": "tests/Stubs/Yii2/"
+            "Kowts\\Efatura\\Tests\\": "tests/"
         },
         "files": [
             "tests/Fixtures.php"

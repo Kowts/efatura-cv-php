@@ -61,6 +61,22 @@ jobs:
       - name: Auditoria de dependências
         run: composer audit
 
+  yii2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, dom, json, libxml, openssl, zip
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - name: Instalar Yii2 apenas para teste de compatibilidade
+        run: |
+          composer config repositories.asset-packagist composer https://asset-packagist.org
+          composer require --dev yiisoft/yii2 --with-all-dependencies --no-interaction --prefer-dist
+      - run: php vendor/bin/phpunit tests/Yii2BridgeTest.php
+
   database:
     runs-on: ubuntu-latest
     services:
