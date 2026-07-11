@@ -1,6 +1,9 @@
 # e-Fatura CV para PHP
 
 <p align="center">
+  <img src="assets/efatura-cv-logo.png" alt="Logótipo e-Fatura CV para PHP" width="170">
+  <br>
+  <br>
   <img src="assets/efatura-cv-hero.png" alt="e-Fatura CV para PHP" width="960">
 </p>
 
