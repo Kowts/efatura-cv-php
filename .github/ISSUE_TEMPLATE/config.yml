@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentação
+    url: https://github.com/Kowts/efatura-cv-php#documentação
+    about: Consulte primeiro os guias, exemplos e referência da API.

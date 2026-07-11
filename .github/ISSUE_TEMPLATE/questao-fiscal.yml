@@ -1,0 +1,80 @@
+name: Questão fiscal / conformidade
+description: Pedir esclarecimento sobre regras fiscais, DFE v11, IUD, contingência ou reconciliação.
+title: "[Fiscal]: "
+labels:
+  - fiscal
+  - documentação
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Este projecto não é oficial da DNRE e não substitui homologação, parecer fiscal ou validação no ambiente oficial. Não inclua documentos fiscais reais, certificados, chaves, tokens ou dados pessoais.
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Tema fiscal
+      options:
+        - IUD / sequência
+        - Tipo documental
+        - XML DFE v11
+        - XSD / validação
+        - XAdES-BES / assinatura
+        - Contingência
+        - Submissão
+        - Reconciliação
+        - DFA / PDF / QR Code
+        - Eventos FDC / UDN
+        - Outro
+    validations:
+      required: true
+  - type: input
+    id: manual
+    attributes:
+      label: Referência do manual técnico
+      description: Indique secção, página ou regra, se aplicável.
+      placeholder: "Manual técnico e-Fatura v11.0, secção ..."
+    validations:
+      required: false
+  - type: textarea
+    id: question
+    attributes:
+      label: Questão
+      description: Descreva a dúvida fiscal ou de conformidade de forma objectiva.
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Cenário de emissão
+      description: Use dados fictícios.
+      placeholder: |
+        Tipo de documento:
+        Ambiente:
+        Online/contingência:
+        Middleware/plataforma:
+        Resultado esperado:
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Comportamento actual da biblioteca
+      description: Se aplicável, explique o que a biblioteca gera, valida ou rejeita.
+    validations:
+      required: false
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta ou interpretação esperada
+      description: Se tiver uma interpretação do manual, descreva-a aqui.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmações
+      options:
+        - label: Usei apenas dados fictícios ou anonimizados.
+          required: true
+        - label: Entendo que a resposta não substitui homologação oficial nem parecer fiscal.
+          required: true

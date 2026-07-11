@@ -1,0 +1,97 @@
+name: Bug de integração
+description: Reportar falhas ao integrar a biblioteca com frameworks, HTTP, base de dados ou assinatura.
+title: "[Integração]: "
+labels:
+  - bug
+  - integração
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use este formulário para problemas técnicos de integração. Não inclua certificados, chaves privadas, tokens, ZIPs fiscais reais ou dados pessoais.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área afectada
+      options:
+        - PHP puro
+        - Laravel
+        - Symfony
+        - Yii2
+        - PSR-18 / HTTP
+        - PDO / sequência / idempotência
+        - XAdES / certificados
+        - XML / XSD
+        - CLI
+        - Outro
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versão do pacote
+      description: Exemplo: v0.2.1, dev-main ou hash do commit.
+      placeholder: v0.2.1
+    validations:
+      required: true
+  - type: input
+    id: php
+    attributes:
+      label: Versão do PHP
+      placeholder: "8.3.6"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente técnico
+      description: Sistema operativo, framework, versão do framework, driver PDO, cliente HTTP e extensões relevantes.
+      placeholder: |
+        SO:
+        Framework:
+        Driver PDO:
+        Cliente HTTP:
+        Extensões PHP:
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Passos para reproduzir
+      description: Inclua um exemplo mínimo sem segredos.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamento observado
+      description: Inclua mensagens de erro e stack trace, removendo dados sensíveis.
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Exemplo reduzido
+      description: Código mínimo, XML fictício ou configuração sem credenciais.
+      render: php
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Confirmações
+      options:
+        - label: Removi certificados, chaves privadas, tokens, NIFs reais sensíveis e dados pessoais.
+          required: true
+        - label: Verifiquei se o problema ocorre na versão mais recente disponível.
+          required: false
