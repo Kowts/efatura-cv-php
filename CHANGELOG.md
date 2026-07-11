@@ -7,6 +7,15 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [0.2.0] - 2026-07-10
+
+### Adicionado
+
+- integração opcional com Yii2 através de `EfaturaComponent` e `EfaturaBootstrap`;
+- documentação de configuração para usar `Yii::$app->efatura`;
+- stubs de desenvolvimento para validar a bridge Yii2 sem tornar `yiisoft/yii2`
+  uma dependência obrigatória da biblioteca.
+
 ## [0.1.0] - 2026-07-09
 
 ### Adicionado
@@ -35,5 +44,6 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - coerência semântica do IUD confirmada no XML e nos pacotes ZIP;
 - falhas de transporte são tratadas como submissões de estado incerto.
 
-[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.1.0...HEAD
+[Não publicado]: https://github.com/Kowts/efatura-cv-php/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Kowts/efatura-cv-php/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Kowts/efatura-cv-php/releases/tag/v0.1.0
