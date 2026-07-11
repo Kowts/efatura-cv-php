@@ -287,11 +287,8 @@ não foram publicados vectores oficiais para comparar byte a byte IUD, ZIP e
 assinaturas. Os testes internos não devem ser confundidos com certificação
 oficial.
 
-## Créditos
+## Origem dos artefactos
 
-A arquitectura e alguns comportamentos foram inspirado por
-[`@akira-io/efatura`](https://github.com/akira-io/node-efatura), distribuído
-sob MIT/Apache-2.0.
 Os XSD incluídos são os artefactos do sistema e-Fatura de
 Cabo Verde.
 
