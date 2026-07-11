@@ -101,13 +101,8 @@ final class Yii2BridgeTest extends TestCase
             self::markTestSkipped('Yii2 real não está instalado neste ambiente.');
         }
 
-        $previousApp = \Yii::$app;
-        $app = null;
+        [$app, $previousApp] = self::createRealYii2Application();
         try {
-            $app = new \yii\console\Application([
-                'id' => 'efatura-cv-test',
-                'basePath' => dirname(__DIR__),
-            ]);
             $bootstrap = new EfaturaBootstrap();
             $bootstrap->config = ['config' => self::validConfig()];
             $bootstrap->bootstrap($app);
@@ -117,13 +112,37 @@ final class Yii2BridgeTest extends TestCase
             self::assertInstanceOf(Efatura::class, $app->efatura->client);
             self::assertSame($app->efatura->client, \Yii::$container->get(Efatura::class));
         } finally {
-            if ($app instanceof \yii\console\Application && method_exists($app->errorHandler, 'unregister')) {
-                $app->errorHandler->unregister();
-            }
-            \Yii::$app = $previousApp;
-            if (method_exists(\Yii::$container, 'clear')) {
-                \Yii::$container->clear(Efatura::class);
-            }
+            self::destroyRealYii2Application($app, $previousApp);
+        }
+    }
+
+    public function testFactoryConfiguradaNoYii2RealCriaClienteUmaVez(): void
+    {
+        if (!class_exists(\yii\console\Application::class)) {
+            self::markTestSkipped('Yii2 real não está instalado neste ambiente.');
+        }
+
+        [$app, $previousApp] = self::createRealYii2Application();
+        $calls = 0;
+        $expected = new Efatura(EfaturaConfig::fromArray(self::validConfig()));
+
+        try {
+            $app->set('efatura', [
+                'class' => EfaturaComponent::class,
+                'config' => self::validConfig(),
+                'factory' => static function () use (&$calls, $expected): Efatura {
+                    $calls++;
+
+                    return $expected;
+                },
+            ]);
+
+            self::assertInstanceOf(Efatura::class, $app->efatura->client);
+            self::assertSame($app->efatura->client, $app->efatura->client);
+            self::assertSame($expected, $app->efatura->client);
+            self::assertSame(1, $calls);
+        } finally {
+            self::destroyRealYii2Application($app, $previousApp);
         }
     }
 
@@ -139,6 +158,34 @@ final class Yii2BridgeTest extends TestCase
             'software_name' => 'e-Fatura PHP',
             'software_version' => '0.1.0',
         ];
+    }
+
+    /**
+     * @return array{0:\yii\console\Application,1:mixed}
+     */
+    private static function createRealYii2Application(): array
+    {
+        $previousApp = \Yii::$app;
+        $app = new \yii\console\Application([
+            'id' => 'efatura-cv-test',
+            'basePath' => dirname(__DIR__),
+        ]);
+
+        return [$app, $previousApp];
+    }
+
+    /**
+     * @param mixed $previousApp
+     */
+    private static function destroyRealYii2Application(\yii\console\Application $app, mixed $previousApp): void
+    {
+        if (method_exists($app->errorHandler, 'unregister')) {
+            $app->errorHandler->unregister();
+        }
+        \Yii::$app = $previousApp;
+        if (method_exists(\Yii::$container, 'clear')) {
+            \Yii::$container->clear(Efatura::class);
+        }
     }
 
     private static function loadYii2StubsWhenFrameworkIsAbsent(): void
