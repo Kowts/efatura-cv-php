@@ -146,19 +146,15 @@ return [
 
 O ambiente `PRODUCTION` exige armazenamento persistente para sequências e
 idempotência. O componente padrão cria uma instância simples a partir de arrays;
-para produção, injecte uma instância `Efatura` já construída.
+para produção, forneça uma `factory` personalizada que constrói a instância
+`Efatura` com os stores persistentes.
 
-Uma forma segura em Yii2 é criar um componente da aplicação que constrói o
-cliente no `init()`, quando `Yii::$app->db` já está disponível.
-
-Crie `components/EfaturaProductionComponent.php`:
+Em `config/efatura.php`:
 
 ```php
 <?php
 
 declare(strict_types=1);
-
-namespace app\components;
 
 use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
 use Kowts\Efatura\Config\EfaturaConfig;
@@ -168,70 +164,48 @@ use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
 use Kowts\Efatura\Infrastructure\Submission\PdoSubmissionRegistry;
 use Yii;
 
-final class EfaturaProductionComponent extends EfaturaComponent
-{
-    public function init(): void
-    {
-        parent::init();
+$env = static function (string $name, string $default = ''): string {
+    $value = getenv($name);
 
-        $pdo = Yii::$app->db->pdo;
+    return $value === false || $value === '' ? $default : $value;
+};
 
-        $this->setClient(new Efatura(
+$envOrNull = static function (string $name) use ($env): ?string {
+    $value = $env($name);
+
+    return $value === '' ? null : $value;
+};
+
+return [
+    'class' => EfaturaComponent::class,
+    'factory' => static function (EfaturaComponent $component) use ($env, $envOrNull): Efatura {
+        return new Efatura(
             new EfaturaConfig(
-                transmitterNif: self::env('EFATURA_TRANSMITTER_NIF'),
-                transmitterLed: self::env('EFATURA_TRANSMITTER_LED', '001'),
-                softwareCode: self::env('EFATURA_SOFTWARE_CODE'),
-                softwareName: self::env('EFATURA_SOFTWARE_NAME'),
-                softwareVersion: self::env('EFATURA_SOFTWARE_VERSION', '1.0.0'),
-                middlewareBaseUrl: self::envOrNull('EFATURA_MIDDLEWARE_URL'),
-                transmitterKey: self::envOrNull('EFATURA_TRANSMITTER_KEY'),
+                transmitterNif: $env('EFATURA_TRANSMITTER_NIF'),
+                transmitterLed: $env('EFATURA_TRANSMITTER_LED', '001'),
+                softwareCode: $env('EFATURA_SOFTWARE_CODE'),
+                softwareName: $env('EFATURA_SOFTWARE_NAME'),
+                softwareVersion: $env('EFATURA_SOFTWARE_VERSION', '1.0.0'),
+                middlewareBaseUrl: $envOrNull('EFATURA_MIDDLEWARE_URL'),
+                transmitterKey: $envOrNull('EFATURA_TRANSMITTER_KEY'),
                 emitter: [
                     'taxId' => [
                         'countryCode' => 'CV',
-                        'value' => self::env('EFATURA_EMITTER_NIF', self::env('EFATURA_TRANSMITTER_NIF')),
+                        'value' => $env('EFATURA_EMITTER_NIF', $env('EFATURA_TRANSMITTER_NIF')),
                     ],
-                    'name' => self::env('EFATURA_EMITTER_NAME'),
+                    'name' => $env('EFATURA_EMITTER_NAME'),
                     'address' => [
                         'countryCode' => 'CV',
-                        'addressDetail' => self::env('EFATURA_EMITTER_ADDRESS'),
+                        'addressDetail' => $env('EFATURA_EMITTER_ADDRESS'),
                     ],
                 ],
-                platformBaseUrl: self::env('EFATURA_PLATFORM_URL', EfaturaConfig::DEFAULT_PLATFORM_URL),
-                environment: Environment::from(strtoupper(self::env('EFATURA_ENVIRONMENT', 'TEST'))),
+                platformBaseUrl: $env('EFATURA_PLATFORM_URL', EfaturaConfig::DEFAULT_PLATFORM_URL),
+                environment: Environment::from(strtoupper($env('EFATURA_ENVIRONMENT', 'TEST'))),
             ),
-            sequenceStore: new PdoSequenceStore($pdo),
-            submissionRegistry: new PdoSubmissionRegistry($pdo),
-        ));
-    }
-
-    private static function env(string $name, string $default = ''): string
-    {
-        $value = getenv($name);
-
-        return $value === false || $value === '' ? $default : $value;
-    }
-
-    private static function envOrNull(string $name): ?string
-    {
-        $value = self::env($name);
-
-        return $value === '' ? null : $value;
-    }
-}
-```
-
-Depois, em `config/efatura.php`, use este componente em vez do componente
-genérico:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-use app\components\EfaturaProductionComponent;
-
-return [
-    'class' => EfaturaProductionComponent::class,
+            sequenceStore: new PdoSequenceStore(Yii::$app->db->pdo),
+            submissionRegistry: new PdoSubmissionRegistry(Yii::$app->db->pdo),
+        );
+    },
 ];
 ```
 

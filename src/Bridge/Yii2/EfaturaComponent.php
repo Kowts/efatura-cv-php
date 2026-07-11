@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Kowts\Efatura\Bridge\Yii2;
 
+use InvalidArgumentException;
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\EfaturaFactory;
 use yii\base\Component;
@@ -24,12 +25,22 @@ final class EfaturaComponent extends Component
      */
     public array $config = [];
 
+    /**
+     * Factory opcional para construir a fachada principal.
+     *
+     * Use quando a aplicação precisa injectar dependências persistentes, como
+     * `PdoSequenceStore`, `PdoSubmissionRegistry` ou transportes HTTP próprios.
+     *
+     * @var null|callable(self):Efatura
+     */
+    public mixed $factory = null;
+
     private ?Efatura $client = null;
 
     public function getClient(): Efatura
     {
         if ($this->client === null) {
-            $this->client = EfaturaFactory::fromArray($this->config);
+            $this->client = $this->createClient();
         }
 
         return $this->client;
@@ -43,6 +54,24 @@ final class EfaturaComponent extends Component
     public function setClient(Efatura $client): void
     {
         $this->client = $client;
+    }
+
+    private function createClient(): Efatura
+    {
+        if ($this->factory === null) {
+            return EfaturaFactory::fromArray($this->config);
+        }
+
+        if (!is_callable($this->factory)) {
+            throw new InvalidArgumentException('A factory Yii2 e-Fatura deve ser callable.');
+        }
+
+        $client = ($this->factory)($this);
+        if (!$client instanceof Efatura) {
+            throw new InvalidArgumentException('A factory Yii2 e-Fatura deve devolver uma instância de Efatura.');
+        }
+
+        return $client;
     }
 
     /**

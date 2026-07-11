@@ -194,6 +194,10 @@ $iud = Yii::$app->efatura->buildSequentialIud('2026-07-08', DocumentType::Electr
 $xml = Yii::$app->efatura->buildDfeXml($iud, $documento);
 ```
 
+Para produção, o componente aceita uma `factory` personalizada para injectar
+`PdoSequenceStore`, `PdoSubmissionRegistry` e transportes HTTP próprios. Veja o
+[guia fiscal completo para Yii2](docs/yii2.md).
+
 ## Sequências em produção
 
 O armazenamento predefinido existe apenas em memória. Em produção, use uma

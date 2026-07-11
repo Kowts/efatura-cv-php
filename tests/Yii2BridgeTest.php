@@ -39,6 +39,38 @@ final class Yii2BridgeTest extends TestCase
         self::assertTrue(Iud::isValid($iud));
     }
 
+    public function testComponenteAceitaFactoryPersonalizada(): void
+    {
+        $calls = 0;
+        $expected = new Efatura(\Kowts\Efatura\EfaturaFactory::fromArray(self::validConfig())->config);
+
+        $component = new EfaturaComponent([
+            'factory' => static function (EfaturaComponent $component) use (&$calls, $expected): Efatura {
+                $calls++;
+                self::assertSame('100200300', $component->config['transmitter_nif']);
+
+                return $expected;
+            },
+            'config' => self::validConfig(),
+        ]);
+
+        self::assertSame($expected, $component->getClient());
+        self::assertSame($expected, $component->getClient());
+        self::assertSame(1, $calls);
+    }
+
+    public function testComponenteRejeitaFactoryInvalida(): void
+    {
+        $component = new EfaturaComponent([
+            'factory' => static fn (): string => 'invalido',
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('deve devolver uma instância de Efatura');
+
+        $component->getClient();
+    }
+
     public function testBootstrapRegistaComponenteSemSobrescreverExistente(): void
     {
         $app = new Yii2ApplicationStub();
