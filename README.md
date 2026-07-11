@@ -163,7 +163,8 @@ Instale também o Yii2 na aplicação consumidora:
 composer require yiisoft/yii2
 ```
 
-Registe o componente na configuração da aplicação:
+Para arranque local, testes ou ambientes sem submissão fiscal real, pode
+registar o componente apenas com `config`:
 
 ```php
 use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
@@ -185,6 +186,9 @@ return [
 ];
 ```
 
+Esta forma usa os armazenamentos predefinidos em memória e não deve ser usada
+em produção.
+
 Depois use a biblioteca sem duplicar regras fiscais:
 
 ```php
@@ -194,8 +198,31 @@ $iud = Yii::$app->efatura->buildSequentialIud('2026-07-08', DocumentType::Electr
 $xml = Yii::$app->efatura->buildDfeXml($iud, $documento);
 ```
 
-Para produção, o componente aceita uma `factory` personalizada para injectar
-`PdoSequenceStore`, `PdoSubmissionRegistry` e transportes HTTP próprios. Veja o
+Em produção, construa o cliente com uma `factory` e stores persistentes:
+
+```php
+use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
+use Kowts\Efatura\Efatura;
+use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
+use Kowts\Efatura\Infrastructure\Submission\PdoSubmissionRegistry;
+
+$efaturaConfig = require __DIR__ . '/efatura-config.php'; // devolve EfaturaConfig
+
+return [
+    'components' => [
+        'efatura' => [
+            'class' => EfaturaComponent::class,
+            'factory' => static fn (EfaturaComponent $component): Efatura => new Efatura(
+                $efaturaConfig,
+                sequenceStore: new PdoSequenceStore(Yii::$app->db->pdo),
+                submissionRegistry: new PdoSubmissionRegistry(Yii::$app->db->pdo),
+            ),
+        ],
+    ],
+];
+```
+
+As tabelas de sequência e submissão devem ser criadas por migrações Yii2. Veja o
 [guia fiscal completo para Yii2](docs/yii2.md).
 
 ## Sequências em produção
