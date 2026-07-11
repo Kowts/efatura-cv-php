@@ -202,21 +202,28 @@ Em produção, construa o cliente com uma `factory` e stores persistentes:
 
 ```php
 use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
+use Kowts\Efatura\Config\EfaturaConfig;
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
 use Kowts\Efatura\Infrastructure\Submission\PdoSubmissionRegistry;
-
-$efaturaConfig = require __DIR__ . '/efatura-config.php'; // devolve EfaturaConfig
 
 return [
     'components' => [
         'efatura' => [
             'class' => EfaturaComponent::class,
-            'factory' => static fn (EfaturaComponent $component): Efatura => new Efatura(
-                $efaturaConfig,
-                sequenceStore: new PdoSequenceStore(Yii::$app->db->pdo),
-                submissionRegistry: new PdoSubmissionRegistry(Yii::$app->db->pdo),
-            ),
+            'config' => [
+                // Mesma configuração fiscal do exemplo anterior.
+            ],
+            'factory' => static function (EfaturaComponent $component): Efatura {
+                $pdo = Yii::$app->db->pdo;
+                $prefix = Yii::$app->db->tablePrefix;
+
+                return new Efatura(
+                    EfaturaConfig::fromArray($component->config),
+                    sequenceStore: new PdoSequenceStore($pdo, $prefix . 'efatura_sequences'),
+                    submissionRegistry: new PdoSubmissionRegistry($pdo, $prefix . 'efatura_submissions'),
+                );
+            },
         ],
     ],
 ];

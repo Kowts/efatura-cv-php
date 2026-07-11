@@ -158,52 +158,43 @@ declare(strict_types=1);
 
 use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
 use Kowts\Efatura\Config\EfaturaConfig;
-use Kowts\Efatura\Domain\Environment;
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
 use Kowts\Efatura\Infrastructure\Submission\PdoSubmissionRegistry;
 use Yii;
 
-$env = static function (string $name, string $default = ''): string {
-    $value = getenv($name);
-
-    return $value === false || $value === '' ? $default : $value;
-};
-
-$envOrNull = static function (string $name) use ($env): ?string {
-    $value = $env($name);
-
-    return $value === '' ? null : $value;
-};
-
 return [
     'class' => EfaturaComponent::class,
-    'factory' => static function (EfaturaComponent $component) use ($env, $envOrNull): Efatura {
+    'config' => [
+        'transmitter_nif' => getenv('EFATURA_TRANSMITTER_NIF'),
+        'transmitter_led' => getenv('EFATURA_TRANSMITTER_LED') ?: '001',
+        'transmitter_key' => getenv('EFATURA_TRANSMITTER_KEY') ?: null,
+        'software_code' => getenv('EFATURA_SOFTWARE_CODE'),
+        'software_name' => getenv('EFATURA_SOFTWARE_NAME'),
+        'software_version' => getenv('EFATURA_SOFTWARE_VERSION') ?: '1.0.0',
+        'middleware_base_url' => getenv('EFATURA_MIDDLEWARE_URL') ?: null,
+        'platform_base_url' => getenv('EFATURA_PLATFORM_URL') ?: EfaturaConfig::DEFAULT_PLATFORM_URL,
+        'environment' => getenv('EFATURA_ENVIRONMENT') ?: 'TEST',
+        'emitter' => [
+            'taxId' => [
+                'countryCode' => 'CV',
+                'value' => getenv('EFATURA_EMITTER_NIF') ?: getenv('EFATURA_TRANSMITTER_NIF'),
+            ],
+            'name' => getenv('EFATURA_EMITTER_NAME'),
+            'address' => [
+                'countryCode' => 'CV',
+                'addressDetail' => getenv('EFATURA_EMITTER_ADDRESS'),
+            ],
+        ],
+    ],
+    'factory' => static function (EfaturaComponent $component): Efatura {
+        $pdo = Yii::$app->db->pdo;
+        $prefix = Yii::$app->db->tablePrefix;
+
         return new Efatura(
-            new EfaturaConfig(
-                transmitterNif: $env('EFATURA_TRANSMITTER_NIF'),
-                transmitterLed: $env('EFATURA_TRANSMITTER_LED', '001'),
-                softwareCode: $env('EFATURA_SOFTWARE_CODE'),
-                softwareName: $env('EFATURA_SOFTWARE_NAME'),
-                softwareVersion: $env('EFATURA_SOFTWARE_VERSION', '1.0.0'),
-                middlewareBaseUrl: $envOrNull('EFATURA_MIDDLEWARE_URL'),
-                transmitterKey: $envOrNull('EFATURA_TRANSMITTER_KEY'),
-                emitter: [
-                    'taxId' => [
-                        'countryCode' => 'CV',
-                        'value' => $env('EFATURA_EMITTER_NIF', $env('EFATURA_TRANSMITTER_NIF')),
-                    ],
-                    'name' => $env('EFATURA_EMITTER_NAME'),
-                    'address' => [
-                        'countryCode' => 'CV',
-                        'addressDetail' => $env('EFATURA_EMITTER_ADDRESS'),
-                    ],
-                ],
-                platformBaseUrl: $env('EFATURA_PLATFORM_URL', EfaturaConfig::DEFAULT_PLATFORM_URL),
-                environment: Environment::from(strtoupper($env('EFATURA_ENVIRONMENT', 'TEST'))),
-            ),
-            sequenceStore: new PdoSequenceStore(Yii::$app->db->pdo),
-            submissionRegistry: new PdoSubmissionRegistry(Yii::$app->db->pdo),
+            EfaturaConfig::fromArray($component->config),
+            sequenceStore: new PdoSequenceStore($pdo, $prefix . 'efatura_sequences'),
+            submissionRegistry: new PdoSubmissionRegistry($pdo, $prefix . 'efatura_submissions'),
         );
     },
 ];

@@ -6,6 +6,7 @@ namespace Kowts\Efatura\Tests;
 
 use Kowts\Efatura\Bridge\Yii2\EfaturaBootstrap;
 use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
+use Kowts\Efatura\Config\EfaturaConfig;
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Domain\Iud;
@@ -42,7 +43,7 @@ final class Yii2BridgeTest extends TestCase
     public function testComponenteAceitaFactoryPersonalizada(): void
     {
         $calls = 0;
-        $expected = new Efatura(\Kowts\Efatura\EfaturaFactory::fromArray(self::validConfig())->config);
+        $expected = new Efatura(EfaturaConfig::fromArray(self::validConfig()));
 
         $component = new EfaturaComponent([
             'factory' => static function (EfaturaComponent $component) use (&$calls, $expected): Efatura {

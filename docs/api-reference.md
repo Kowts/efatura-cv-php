@@ -294,6 +294,14 @@ public function dto(): FiscalDocument
 public function __construct(public readonly string $transmitterNif, public readonly string $transmitterLed, public readonly string $softwareCode, public readonly string $softwareName, public readonly string $softwareVersion, public readonly ?string $middlewareBaseUrl = null, public readonly ?string $transmitterKey = null, public readonly ?string $defaultSerie = null, public readonly ?array $emitter = null, public readonly string $platformBaseUrl = self::DEFAULT_PLATFORM_URL, public readonly string $dfaBaseUrl = self::DEFAULT_DFA_URL, public readonly Environment $environment = Environment::Test, public readonly string $middlewareDfePath = '/v1/dfe', public readonly string $platformDfePath = '/v1/dfe', public readonly string $middlewareEventPath = '/v1/event', public readonly string $platformEventPath = '/v1/event')
 ```
 
+#### `fromArray()`
+
+```php
+public static function fromArray(array $config): self
+```
+
+Constrói a configuração imutável a partir da estrutura usada por frameworks e ficheiros de configuração.
+
 #### `repositoryCode()`
 
 ```php
