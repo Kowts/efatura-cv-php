@@ -41,6 +41,23 @@ criar pacotes ZIP e comunicar com serviços e-Fatura de Cabo Verde.
 - respostas JSON/XML normalizadas;
 - nenhuma dependência de Laravel, Symfony ou outro framework.
 
+## Fluxo de emissão
+
+```mermaid
+flowchart LR
+    CONFIG["Configurar contribuinte<br/>software, LED e ambiente"]
+    DOC["Construir documento<br/>linhas, impostos e totais"]
+    IUD["Reservar número<br/>e gerar IUD"]
+    XML["Gerar XML DFE v11"]
+    XSD["Validar com XSD oficial"]
+    SIGN["Assinar XAdES-BES"]
+    ZIP["Criar ZIP Deflate<br/>{IUD}.xml"]
+    SEND["Submeter<br/>middleware ou plataforma"]
+    RECON["Guardar resposta<br/>e reconciliar estado"]
+
+    CONFIG --> DOC --> IUD --> XML --> XSD --> SIGN --> ZIP --> SEND --> RECON
+```
+
 ## Requisitos
 
 - PHP 8.1 ou superior;
