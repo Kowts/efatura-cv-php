@@ -55,6 +55,7 @@ final class Yii2BridgeTest extends TestCase
             'config' => self::validConfig(),
         ]);
 
+        self::assertIsCallable($component->getFactory());
         self::assertSame($expected, $component->getClient());
         self::assertSame($expected, $component->getClient());
         self::assertSame(1, $calls);

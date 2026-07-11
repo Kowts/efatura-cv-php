@@ -182,6 +182,20 @@ public function getEfatura(): Efatura
 public function setClient(Efatura $client): void
 ```
 
+#### `setFactory()`
+
+```php
+public function setFactory(callable $factory): void
+```
+
+Define uma factory opcional para construir a fachada principal.
+
+#### `getFactory()`
+
+```php
+public function getFactory(): ?callable
+```
+
 #### `__call()`
 
 ```php

@@ -25,17 +25,12 @@ final class EfaturaComponent extends Component
      */
     public array $config = [];
 
+    private ?Efatura $client = null;
+
     /**
-     * Factory opcional para construir a fachada principal.
-     *
-     * Use quando a aplicação precisa injectar dependências persistentes, como
-     * `PdoSequenceStore`, `PdoSubmissionRegistry` ou transportes HTTP próprios.
-     *
      * @var null|callable(self):Efatura
      */
-    public mixed $factory = null;
-
-    private ?Efatura $client = null;
+    private mixed $factory = null;
 
     public function getClient(): Efatura
     {
@@ -54,6 +49,27 @@ final class EfaturaComponent extends Component
     public function setClient(Efatura $client): void
     {
         $this->client = $client;
+    }
+
+    /**
+     * Define uma factory opcional para construir a fachada principal.
+     *
+     * Use quando a aplicação precisa injectar dependências persistentes, como
+     * `PdoSequenceStore`, `PdoSubmissionRegistry` ou transportes HTTP próprios.
+     *
+     * @param callable(self):Efatura $factory
+     */
+    public function setFactory(callable $factory): void
+    {
+        $this->factory = $factory;
+    }
+
+    /**
+     * @return null|callable(self):Efatura
+     */
+    public function getFactory(): ?callable
+    {
+        return is_callable($this->factory) ? $this->factory : null;
     }
 
     private function createClient(): Efatura
