@@ -45,18 +45,54 @@ criar pacotes ZIP e comunicar com serviços e-Fatura de Cabo Verde.
 ## Fluxo de emissão
 
 ```mermaid
-flowchart LR
-    CONFIG["Configurar contribuinte<br/>software, LED e ambiente"]
-    DOC["Construir documento<br/>linhas, impostos e totais"]
-    IUD["Reservar número<br/>e gerar IUD"]
-    XML["Gerar XML DFE v11"]
-    XSD["Validar com XSD oficial"]
-    SIGN["Assinar XAdES-BES"]
-    ZIP["Criar ZIP Deflate<br/>{IUD}.xml"]
-    SEND["Submeter<br/>middleware ou plataforma"]
-    RECON["Guardar resposta<br/>e reconciliar estado"]
+flowchart TD
+    APP["Aplicação PHP<br/>Laravel · Symfony · Yii2 · PHP puro"]
 
-    CONFIG --> DOC --> IUD --> XML --> XSD --> SIGN --> ZIP --> SEND --> RECON
+    subgraph PREP["1. Preparação fiscal"]
+        CONFIG["Configuração<br/>NIF, LED, software e ambiente"]
+        SEQ["Sequência PDO<br/>número fiscal sem duplicados"]
+        IUD["IUD válido<br/>45 caracteres + controlo"]
+    end
+
+    subgraph DFE["2. Documento electrónico"]
+        DOC["DTO ou array<br/>linhas, impostos e totais"]
+        XML["XML DFE v11<br/>namespace oficial"]
+        XSD["Validação XSD<br/>artefactos oficiais"]
+    end
+
+    subgraph SEC["3. Segurança e pacote"]
+        CERT["Certificado digital<br/>PEM ou PKCS#12"]
+        SIGN["Assinatura<br/>XAdES-BES RSA-SHA256"]
+        ZIP["ZIP Deflate<br/>{IUD}.xml"]
+    end
+
+    subgraph SEND["4. Entrega e acompanhamento"]
+        ROUTE{"Canal de submissão"}
+        MID["Middleware<br/>chave do transmissor"]
+        PLATFORM["Plataforma e-Fatura<br/>OAuth + repositório"]
+        RESULT["Resposta normalizada<br/>JSON/XML"]
+        RECON["Idempotência<br/>e reconciliação"]
+    end
+
+    APP --> CONFIG --> SEQ --> IUD --> DOC --> XML --> XSD --> SIGN --> ZIP --> ROUTE
+    CERT --> SIGN
+    ROUTE --> MID --> RESULT
+    ROUTE --> PLATFORM --> RESULT
+    RESULT --> RECON
+
+    classDef app fill:#0f2f5f,stroke:#2f80ed,color:#fff,stroke-width:2px;
+    classDef prep fill:#f8fafc,stroke:#3b82f6,color:#0f172a;
+    classDef dfe fill:#fff7ed,stroke:#f97316,color:#0f172a;
+    classDef sec fill:#ecfdf5,stroke:#10b981,color:#0f172a;
+    classDef send fill:#f5f3ff,stroke:#8b5cf6,color:#0f172a;
+    classDef decision fill:#111827,stroke:#facc15,color:#fff,stroke-width:2px;
+
+    class APP app;
+    class CONFIG,SEQ,IUD prep;
+    class DOC,XML,XSD dfe;
+    class CERT,SIGN,ZIP sec;
+    class MID,PLATFORM,RESULT,RECON send;
+    class ROUTE decision;
 ```
 
 ## Requisitos
