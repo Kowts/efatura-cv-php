@@ -188,8 +188,12 @@ return [
 ];
 ```
 
-Esta forma usa os armazenamentos predefinidos em memória e não deve ser usada
-em produção.
+> [!WARNING]
+> Em produção, configure o componente Yii2 através da propriedade `factory`,
+> utilizando `PdoSequenceStore` e `PdoSubmissionRegistry`. O armazenamento em
+> memória destina-se apenas a desenvolvimento e testes.
+>
+> Consulte [docs/yii2.md](docs/yii2.md) para a configuração completa.
 
 Depois use a biblioteca sem duplicar regras fiscais:
 
@@ -231,8 +235,7 @@ return [
 ];
 ```
 
-As tabelas de sequência e submissão devem ser criadas por migrações Yii2. Veja o
-[guia fiscal completo para Yii2](docs/yii2.md).
+As tabelas de sequência e submissão devem ser criadas por migrações Yii2.
 
 ## Sequências em produção
 
