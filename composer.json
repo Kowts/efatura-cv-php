@@ -46,7 +46,8 @@
         "endroid/qr-code": "Necessário para incorporar o QR Code no DFA.",
         "ext-gd": "Necessário para renderizar o QR Code PNG do DFA.",
         "illuminate/support": "Necessário para usar o Service Provider Laravel.",
-        "symfony/dependency-injection": "Necessário para usar o bundle Symfony."
+        "symfony/dependency-injection": "Necessário para usar o bundle Symfony.",
+        "yiisoft/yii2": "Necessário para usar o componente Yii2."
     },
     "bin": [
         "bin/efatura"
@@ -58,7 +59,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Kowts\\Efatura\\Tests\\": "tests/"
+            "Kowts\\Efatura\\Tests\\": "tests/",
+            "yii\\": "tests/Stubs/Yii2/"
         },
         "files": [
             "tests/Fixtures.php"

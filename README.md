@@ -31,7 +31,7 @@ criar pacotes ZIP e comunicar com serviços e-Fatura de Cabo Verde.
 - cálculos monetários com representação decimal exacta;
 - DFA em PDF com QR Code;
 - DTOs imutáveis e tipados, sem retirar a API por arrays;
-- integrações opcionais com Laravel e Symfony;
+- integrações opcionais com Laravel, Symfony e Yii2;
 - CLI para inspeccionar IUDs e validar XML;
 - respostas JSON/XML normalizadas;
 - nenhuma dependência de Laravel, Symfony ou outro framework.
@@ -143,6 +143,45 @@ $zip = $efatura->buildDfeZip([['iud' => $iud, 'xml' => $signed['xml']]]);
 $result = $efatura->submitDfeZip($zip);
 ```
 
+## Integração com Yii2
+
+Instale também o Yii2 na aplicação consumidora:
+
+```bash
+composer require yiisoft/yii2
+```
+
+Registe o componente na configuração da aplicação:
+
+```php
+use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
+
+return [
+    'components' => [
+        'efatura' => [
+            'class' => EfaturaComponent::class,
+            'config' => [
+                'transmitter_nif' => '100200300',
+                'transmitter_led' => '001',
+                'software_code' => 'MEUSOFT',
+                'software_name' => 'Meu Software',
+                'software_version' => '1.0.0',
+                'environment' => 'TEST',
+            ],
+        ],
+    ],
+];
+```
+
+Depois use a biblioteca sem duplicar regras fiscais:
+
+```php
+use Kowts\Efatura\Domain\DocumentType;
+
+$iud = Yii::$app->efatura->buildSequentialIud('2026-07-08', DocumentType::ElectronicInvoice);
+$xml = Yii::$app->efatura->buildDfeXml($iud, $documento);
+```
+
 ## Sequências em produção
 
 O armazenamento predefinido existe apenas em memória. Em produção, use uma
@@ -182,7 +221,7 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 - [Assinatura e certificados](docs/assinatura.md)
 - [Guia de produção](docs/guia-producao.md)
 - [Emissão em contingência](docs/contingencia.md)
-- [Laravel e Symfony](docs/frameworks.md)
+- [Laravel, Symfony e Yii2](docs/frameworks.md)
 - [Lançamentos e verificação](docs/lancamentos.md)
 - [Exemplos completos](examples/README.md)
 - [Exemplo em PHP puro](examples/invoice.php)

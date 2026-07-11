@@ -1,7 +1,7 @@
 # Integração com frameworks
 
-As integrações são opcionais. O núcleo continua independente de Laravel e
-Symfony.
+As integrações são opcionais. O núcleo continua independente de Laravel,
+Symfony e Yii2.
 
 ## Laravel
 
@@ -77,3 +77,63 @@ efatura_cv:
 
 O serviço fica disponível pelo tipo `Kowts\Efatura\Efatura` e pelo alias
 `efatura`.
+
+## Yii2
+
+Instale o pacote na aplicação Yii2. Se o projecto ainda não tiver Yii2 no
+`composer.json`, instale-o explicitamente:
+
+```bash
+composer require kowts/efatura-cv yiisoft/yii2
+```
+
+Registe o componente em `config/web.php` ou `config/console.php`:
+
+```php
+use Kowts\Efatura\Bridge\Yii2\EfaturaComponent;
+
+return [
+    'components' => [
+        'efatura' => [
+            'class' => EfaturaComponent::class,
+            'config' => [
+                'transmitter_nif' => getenv('EFATURA_TRANSMITTER_NIF'),
+                'transmitter_led' => getenv('EFATURA_TRANSMITTER_LED') ?: '001',
+                'transmitter_key' => getenv('EFATURA_TRANSMITTER_KEY') ?: null,
+                'software_code' => getenv('EFATURA_SOFTWARE_CODE'),
+                'software_name' => getenv('EFATURA_SOFTWARE_NAME'),
+                'software_version' => getenv('EFATURA_SOFTWARE_VERSION') ?: '1.0.0',
+                'middleware_base_url' => getenv('EFATURA_MIDDLEWARE_URL') ?: null,
+                'environment' => getenv('EFATURA_ENVIRONMENT') ?: 'TEST',
+                'emitter' => [
+                    'taxId' => [
+                        'countryCode' => 'CV',
+                        'value' => getenv('EFATURA_EMITTER_NIF'),
+                    ],
+                    'name' => getenv('EFATURA_EMITTER_NAME'),
+                    'address' => [
+                        'countryCode' => 'CV',
+                        'addressDetail' => getenv('EFATURA_EMITTER_ADDRESS'),
+                    ],
+                ],
+            ],
+        ],
+    ],
+];
+```
+
+O componente cria `Kowts\Efatura\Efatura` de forma preguiçosa e encaminha
+chamadas desconhecidas para a fachada:
+
+```php
+use Kowts\Efatura\Domain\DocumentType;
+
+$iud = Yii::$app->efatura->buildSequentialIud('2026-07-08', DocumentType::ElectronicInvoice);
+$xml = Yii::$app->efatura->buildDfeXml($iud, $documento);
+
+// Também pode aceder explicitamente à fachada:
+$efatura = Yii::$app->efatura->client;
+```
+
+Se preferir registar o componente durante o arranque, use
+`Kowts\Efatura\Bridge\Yii2\EfaturaBootstrap` e ajuste `componentId`/`config`.
