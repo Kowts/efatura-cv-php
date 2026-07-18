@@ -2,6 +2,14 @@
 
 declare(strict_types=1);
 
+/*
+ * Configuração publicável para Laravel.
+ *
+ * Em PHP puro, Symfony ou Yii2, prefira construir EfaturaConfig directamente
+ * ou reutilizar EfaturaConfig::fromArray(). Este ficheiro assume que o helper
+ * env() do Laravel está disponível durante o carregamento da configuração.
+ */
+
 return [
     'transmitter_nif' => env('EFATURA_TRANSMITTER_NIF'),
     'transmitter_led' => env('EFATURA_TRANSMITTER_LED', '001'),

@@ -7,6 +7,21 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+### Adicionado
+
+- auditoria técnica do projecto em `docs/auditoria.md`.
+
+### Alterado
+
+- política de checkout e arquivo do pacote documentada por `.editorconfig` e
+  `.gitattributes`;
+- configuração Laravel passa a indicar explicitamente que depende do helper
+  `env()` do framework.
+
+### Segurança
+
+- transporte cURL passa a declarar explicitamente a validação TLS.
+
 ## [0.3.0] - 2026-07-11
 
 ### Adicionado

@@ -40,6 +40,8 @@ final class CurlClient
             CURLOPT_POSTFIELDS => $body,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_SSL_VERIFYPEER => true,
             CURLOPT_TIMEOUT => $this->timeout,
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_HTTPHEADER => array_map(
