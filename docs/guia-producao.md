@@ -58,6 +58,11 @@ if ($reconciliation->status === ReconciliationStatus::Confirmed) {
 
 ## Sequência persistente
 
+A implementação PDO suporta SQLite, MySQL/MariaDB e PostgreSQL. SQL Server ainda
+não é suportado sem implementação e testes específicos. Consulte
+[Persistência PDO](persistencia-pdo.md) para a matriz completa de motores,
+esquemas de tabelas e recomendações de concorrência.
+
 ```php
 use Kowts\Efatura\Efatura;
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;

@@ -145,9 +145,13 @@ return [
 ## Configuração de produção com PDO persistente
 
 O ambiente `PRODUCTION` exige armazenamento persistente para sequências e
-idempotência. O componente padrão cria uma instância simples a partir de arrays;
-para produção, forneça uma `factory` personalizada que constrói a instância
-`Efatura` com os stores persistentes.
+idempotência. A implementação PDO suporta SQLite, MySQL/MariaDB e PostgreSQL;
+SQL Server ainda não é suportado sem implementação específica. O componente
+padrão cria uma instância simples a partir de arrays; para produção, forneça uma
+`factory` personalizada que constrói a instância `Efatura` com os stores
+persistentes.
+
+Consulte também [Persistência PDO](persistencia-pdo.md).
 
 Em `config/efatura.php`:
 

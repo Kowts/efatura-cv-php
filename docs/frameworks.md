@@ -145,3 +145,6 @@ clientes PSR-18 e outras dependências persistentes sem criar uma subclasse.
 Para uma integração fiscal completa com migrações, sequência persistente,
 idempotência, submissão, reconciliação, contingência, PDF e exemplo com
 `ActiveRecord`, consulte [Integração fiscal completa com Yii2](yii2.md).
+
+Para detalhes sobre motores PDO suportados, migrações e limites de concorrência,
+consulte [Persistência PDO](persistencia-pdo.md).

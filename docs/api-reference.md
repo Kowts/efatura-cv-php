@@ -1614,7 +1614,7 @@ public function verify(string $xml): array
 
 - Tipo: Classe
 - Ficheiro: `src/Infrastructure/Submission/PdoSubmissionRegistry.php`
-- Resumo: Registo de idempotência persistente e atómico para bases de dados PDO.
+- Resumo: Registo de idempotência persistente e atómico para SQLite, MySQL/MariaDB e PostgreSQL.
 
 ### Métodos públicos
 

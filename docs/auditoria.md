@@ -27,8 +27,9 @@ e o CI cobre Linux, Windows, PHP 8.1 a 8.4, Yii2 real e bases de dados PDO.
   múltiplos processos, workers ou servidores.
 - Solução: usar `PdoSequenceStore` e `PdoSubmissionRegistry` em produção, via
   factory no framework ou construção manual da fachada.
-- Estado: documentado no README e nos guias de produção/Yii2. Deve continuar a
-  ser reforçado em exemplos novos.
+- Estado: documentado no README, nos guias de produção/Yii2 e em
+  [Persistência PDO](persistencia-pdo.md). Deve continuar a ser reforçado em
+  exemplos novos.
 
 #### Processo de homologação fora do código
 

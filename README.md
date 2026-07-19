@@ -240,7 +240,9 @@ As tabelas de sequência e submissão devem ser criadas por migrações Yii2.
 ## Sequências em produção
 
 O armazenamento predefinido existe apenas em memória. Em produção, use uma
-base de dados para impedir números duplicados entre processos:
+base de dados para impedir números duplicados entre processos. A implementação
+PDO suporta SQLite, MySQL/MariaDB e PostgreSQL. SQL Server ainda não é
+suportado sem implementação específica:
 
 ```php
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
@@ -255,6 +257,9 @@ $efatura = new Efatura($config, $sequences);
 A sequência é independente por NIF transmissor, ano, LED e tipo documental.
 Guarde sempre o IUD, XML, ZIP e resposta de transporte. Uma falha de rede não
 autoriza a reutilização ou substituição automática do número fiscal.
+
+Consulte [Persistência PDO](docs/persistencia-pdo.md) para detalhes de motores
+suportados, migrações, idempotência e limites conhecidos.
 
 ## Segurança
 
@@ -276,6 +281,7 @@ Consulte [Assinatura e certificados](docs/assinatura.md) e
 - [Auditoria técnica](docs/auditoria.md)
 - [Conformidade](docs/conformidade.md)
 - [Assinatura e certificados](docs/assinatura.md)
+- [Persistência PDO](docs/persistencia-pdo.md)
 - [Guia de produção](docs/guia-producao.md)
 - [Emissão em contingência](docs/contingencia.md)
 - [Laravel, Symfony e Yii2](docs/frameworks.md)

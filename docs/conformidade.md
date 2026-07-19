@@ -16,7 +16,7 @@
 | ZIP Deflate `{IUD}.xml` | Implementado | `DfeZip` |
 | Eventos FDC e UDN | Implementado | `EventXmlBuilder` |
 | Pedido de autorização de autofacturação | Implementado | `SelfBillingAuthorizationClient` e `Psr18FiscalAuthorityClient` |
-| Sequência transaccional | Implementado | `PdoSequenceStore` |
+| Sequência transaccional | Implementado | `PdoSequenceStore`; SQLite, MySQL/MariaDB e PostgreSQL |
 | Endpoint de middleware | Configurável | `/v1/dfe` por omissão; confirmar no ambiente homologado |
 | Endpoint de plataforma | Configurável | `/v1/dfe` ou `/v1/dfes`, conforme o serviço contratado |
 | Consulta externa de NIF/software | Implementação configurável | contratos e cliente PSR-18; as rotas dependem do serviço |

@@ -9,7 +9,10 @@ use PDO;
 use PDOException;
 
 /**
- * Registo de idempotência persistente e atómico para bases de dados PDO.
+ * Registo de idempotência persistente e atómico para SQLite, MySQL/MariaDB e PostgreSQL.
+ *
+ * Outros drivers PDO só devem ser usados em produção depois de implementação e
+ * teste de concorrência específicos.
  */
 final class PdoSubmissionRegistry implements SubmissionRegistry
 {

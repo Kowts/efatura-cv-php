@@ -10,6 +10,9 @@ use PDO;
 
 /**
  * Sequências persistentes e atómicas para SQLite, MySQL/MariaDB e PostgreSQL.
+ *
+ * SQL Server ainda não é suportado porque exige uma estratégia específica de
+ * bloqueio e testes de concorrência com o driver `sqlsrv`.
  */
 final class PdoSequenceStore implements SequenceStore
 {

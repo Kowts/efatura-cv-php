@@ -10,6 +10,7 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Adicionado
 
 - auditoria técnica do projecto em `docs/auditoria.md`.
+- guia de persistência PDO em `docs/persistencia-pdo.md`.
 
 ### Alterado
 
@@ -17,6 +18,9 @@ o projecto adopta [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   `.gitattributes`;
 - configuração Laravel passa a indicar explicitamente que depende do helper
   `env()` do framework.
+- documentação de persistência passa a declarar explicitamente SQLite,
+  MySQL/MariaDB e PostgreSQL como motores suportados e SQL Server como não
+  suportado sem implementação específica.
 
 ### Segurança
 
