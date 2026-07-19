@@ -241,8 +241,7 @@ As tabelas de sequência e submissão devem ser criadas por migrações Yii2.
 
 O armazenamento predefinido existe apenas em memória. Em produção, use uma
 base de dados para impedir números duplicados entre processos. A implementação
-PDO suporta SQLite, MySQL/MariaDB e PostgreSQL. SQL Server ainda não é
-suportado sem implementação específica:
+PDO suporta SQLite, MySQL/MariaDB, PostgreSQL e SQL Server:
 
 ```php
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;

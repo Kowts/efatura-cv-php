@@ -22,6 +22,11 @@ final class PdoDriverIntegrationTest extends TestCase
         $this->exerciseDriver('PGSQL');
     }
 
+    public function testSqlServer(): void
+    {
+        $this->exerciseDriver('SQLSRV');
+    }
+
     private function exerciseDriver(string $driver): void
     {
         $dsn = getenv("EFATURA_TEST_{$driver}_DSN");

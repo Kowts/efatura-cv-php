@@ -1533,7 +1533,7 @@ public function reset(string $nif, int $year, string $led, DocumentType $type): 
 
 - Tipo: Classe
 - Ficheiro: `src/Infrastructure/Sequence/PdoSequenceStore.php`
-- Resumo: Sequências persistentes e atómicas para SQLite, MySQL/MariaDB e PostgreSQL.
+- Resumo: Sequências persistentes e atómicas para SQLite, MySQL/MariaDB, PostgreSQL e SQL Server.
 
 ### Métodos públicos
 
@@ -1614,7 +1614,7 @@ public function verify(string $xml): array
 
 - Tipo: Classe
 - Ficheiro: `src/Infrastructure/Submission/PdoSubmissionRegistry.php`
-- Resumo: Registo de idempotência persistente e atómico para SQLite, MySQL/MariaDB e PostgreSQL.
+- Resumo: Registo de idempotência persistente e atómico para SQLite, MySQL/MariaDB, PostgreSQL e SQL Server.
 
 ### Métodos públicos
 

@@ -9,10 +9,7 @@ use Kowts\Efatura\Domain\DocumentType;
 use PDO;
 
 /**
- * Sequências persistentes e atómicas para SQLite, MySQL/MariaDB e PostgreSQL.
- *
- * SQL Server ainda não é suportado porque exige uma estratégia específica de
- * bloqueio e testes de concorrência com o driver `sqlsrv`.
+ * Sequências persistentes e atómicas para SQLite, MySQL/MariaDB, PostgreSQL e SQL Server.
  */
 final class PdoSequenceStore implements SequenceStore
 {
@@ -26,10 +23,14 @@ final class PdoSequenceStore implements SequenceStore
     public function createTable(): void
     {
         $table = $this->safeTable();
-        $this->pdo->exec(
-            "CREATE TABLE IF NOT EXISTS {$table} ("
-            . 'scope_key VARCHAR(191) PRIMARY KEY, current_value INTEGER NOT NULL, updated_at VARCHAR(32) NOT NULL)'
-        );
+        $driver = (string) $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $sql = $driver === 'sqlsrv'
+            ? "IF OBJECT_ID(N'{$table}', N'U') IS NULL BEGIN CREATE TABLE {$table} ("
+                . 'scope_key VARCHAR(191) PRIMARY KEY, current_value INT NOT NULL, updated_at VARCHAR(32) NOT NULL) END'
+            : "CREATE TABLE IF NOT EXISTS {$table} ("
+                . 'scope_key VARCHAR(191) PRIMARY KEY, current_value INTEGER NOT NULL, updated_at VARCHAR(32) NOT NULL)';
+
+        $this->pdo->exec($sql);
     }
 
     public function next(string $nif, int $year, string $led, DocumentType $type): int
@@ -42,6 +43,7 @@ final class PdoSequenceStore implements SequenceStore
             'sqlite' => $this->nextWithReturning($key, $updatedAt),
             'pgsql' => $this->nextWithPostgreSql($key, $updatedAt),
             'mysql' => $this->nextWithMySql($key, $updatedAt),
+            'sqlsrv' => $this->nextWithSqlServer($key, $updatedAt),
             default => $this->nextWithTransaction($key, $updatedAt),
         };
     }
@@ -94,6 +96,34 @@ final class PdoSequenceStore implements SequenceStore
         $statement->execute(['scope' => $key, 'updated' => $updatedAt]);
 
         return $statement->rowCount() === 1 ? 1 : (int) $this->pdo->lastInsertId();
+    }
+
+    private function nextWithSqlServer(string $key, string $updatedAt): int
+    {
+        $table = $this->safeTable();
+        $this->pdo->beginTransaction();
+        try {
+            $statement = $this->pdo->prepare(
+                "SELECT current_value FROM {$table} WITH (UPDLOCK, HOLDLOCK) WHERE scope_key = :scope"
+            );
+            $statement->execute(['scope' => $key]);
+            $current = $statement->fetchColumn();
+            $next = $current === false ? 1 : (int) $current + 1;
+
+            $sql = $current === false
+                ? "INSERT INTO {$table} (scope_key, current_value, updated_at)"
+                    . ' VALUES (:scope, :value, :updated)'
+                : "UPDATE {$table} SET current_value = :value, updated_at = :updated"
+                    . ' WHERE scope_key = :scope';
+            $update = $this->pdo->prepare($sql);
+            $update->execute(['scope' => $key, 'value' => $next, 'updated' => $updatedAt]);
+            $this->pdo->commit();
+
+            return $next;
+        } catch (\Throwable $exception) {
+            $this->pdo->rollBack();
+            throw $exception;
+        }
     }
 
     private function nextWithTransaction(string $key, string $updatedAt): int

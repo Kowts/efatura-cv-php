@@ -6,6 +6,7 @@ namespace Kowts\Efatura\Tests;
 
 use Kowts\Efatura\Domain\DocumentType;
 use Kowts\Efatura\Infrastructure\Sequence\PdoSequenceStore;
+use Kowts\Efatura\Tests\Support\RecordingPdo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -70,6 +71,49 @@ final class PdoSequenceStoreTest extends TestCase
         } finally {
             @unlink($path);
         }
+    }
+
+    public function testSqlServerCriaTabelaComSintaxeCompativel(): void
+    {
+        $pdo = new RecordingPdo('sqlsrv');
+        $store = new PdoSequenceStore($pdo);
+
+        $store->createTable();
+
+        self::assertStringContainsString("IF OBJECT_ID(N'efatura_sequences', N'U') IS NULL", $pdo->executedSql[0]);
+        self::assertStringContainsString('CREATE TABLE efatura_sequences', $pdo->executedSql[0]);
+    }
+
+    public function testSqlServerReservaProximoNumeroComLockTransaccional(): void
+    {
+        $pdo = new RecordingPdo('sqlsrv');
+        $pdo->fetchColumns = [5];
+        $store = new PdoSequenceStore($pdo);
+
+        $next = $store->next('100200300', 2026, '123', DocumentType::ElectronicInvoice);
+
+        self::assertSame(6, $next);
+        self::assertSame(1, $pdo->beginTransactionCalls);
+        self::assertSame(1, $pdo->commitCalls);
+        self::assertSame(0, $pdo->rollBackCalls);
+        self::assertStringContainsString(
+            'WITH (UPDLOCK, HOLDLOCK)',
+            $pdo->preparedSql[0]
+        );
+        self::assertStringStartsWith('UPDATE efatura_sequences SET current_value', $pdo->preparedSql[1]);
+        self::assertSame(6, $pdo->statementParameters[1]['value']);
+    }
+
+    public function testSqlServerInserePrimeiroNumeroDaSequencia(): void
+    {
+        $pdo = new RecordingPdo('sqlsrv');
+        $store = new PdoSequenceStore($pdo);
+
+        $next = $store->next('100200300', 2026, '123', DocumentType::ElectronicInvoice);
+
+        self::assertSame(1, $next);
+        self::assertStringStartsWith('INSERT INTO efatura_sequences', $pdo->preparedSql[1]);
+        self::assertSame(1, $pdo->statementParameters[1]['value']);
     }
 
     /**

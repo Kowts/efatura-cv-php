@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kowts\Efatura\Tests;
 
 use Kowts\Efatura\Infrastructure\Submission\PdoSubmissionRegistry;
+use Kowts\Efatura\Tests\Support\RecordingPdo;
 use PDO;
 use PHPUnit\Framework\TestCase;
 
@@ -61,5 +62,28 @@ final class PdoSubmissionRegistryTest extends TestCase
         } finally {
             @unlink($path);
         }
+    }
+
+    public function testSqlServerCriaTabelaComSintaxeCompativel(): void
+    {
+        $pdo = new RecordingPdo('sqlsrv');
+        $registry = new PdoSubmissionRegistry($pdo);
+
+        $registry->createTable();
+
+        self::assertStringContainsString("IF OBJECT_ID(N'efatura_submissions', N'U') IS NULL", $pdo->executedSql[0]);
+        self::assertStringContainsString('CREATE TABLE efatura_submissions', $pdo->executedSql[0]);
+    }
+
+    public function testSqlServerReservaDigestComInsertEChavePrimaria(): void
+    {
+        $pdo = new RecordingPdo('sqlsrv');
+        $pdo->rowCount = -1;
+        $registry = new PdoSubmissionRegistry($pdo);
+        $digest = hash('sha256', 'pacote-sqlsrv');
+
+        self::assertTrue($registry->claim($digest));
+        self::assertStringStartsWith('INSERT INTO efatura_submissions', $pdo->preparedSql[0]);
+        self::assertSame($digest, $pdo->statementParameters[0]['digest']);
     }
 }

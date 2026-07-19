@@ -13,11 +13,12 @@ existem múltiplos pedidos, workers, servidores ou processos concorrentes.
 | MySQL | Suportado e testado | Usa `ON DUPLICATE KEY UPDATE` com `LAST_INSERT_ID(...)`. |
 | MariaDB | Suportado pela via MySQL | O driver PDO é normalmente `mysql`; deve ser validado na versão usada pela aplicação. |
 | PostgreSQL | Suportado e testado | Usa `ON CONFLICT ... DO UPDATE ... RETURNING`. |
-| SQL Server | Não suportado ainda | O driver `sqlsrv` precisa de implementação e teste próprios. Não use o fallback genérico para produção. |
+| SQL Server | Suportado no código | Usa transacção com `UPDLOCK`/`HOLDLOCK` para sequência e chave primária para idempotência. Recomenda-se validar no ambiente real da aplicação. |
 
-O código reconhece explicitamente os drivers PDO `sqlite`, `mysql` e `pgsql`.
-Outros drivers caem num fallback transaccional genérico, mas esse fallback não
-deve ser tratado como suporte oficial sem teste de concorrência no motor real.
+O código reconhece explicitamente os drivers PDO `sqlite`, `mysql`, `pgsql` e
+`sqlsrv`. Outros drivers caem num fallback transaccional genérico, mas esse
+fallback não deve ser tratado como suporte oficial sem teste de concorrência no
+motor real.
 
 ## Responsabilidades da aplicação
 
@@ -122,13 +123,25 @@ já reservado faz parte do histórico fiscal da factura.
 
 ## SQL Server
 
-SQL Server ainda não está implementado. O suporte correcto deve ser feito com um
-ramo próprio para o driver `sqlsrv`, por exemplo usando locks explícitos como
-`UPDLOCK`/`HOLDLOCK` ou uma estratégia equivalente validada em concorrência.
+SQL Server é tratado explicitamente quando o driver PDO devolve `sqlsrv`.
+`PdoSequenceStore` usa uma transacção com:
 
-Antes de declarar suporte, o projecto deve incluir:
+```sql
+SELECT current_value
+FROM efatura_sequences WITH (UPDLOCK, HOLDLOCK)
+WHERE scope_key = :scope
+```
 
-- implementação específica em `PdoSequenceStore`;
-- implementação específica em `PdoSubmissionRegistry`, se necessário;
+Se a linha existir, o valor é actualizado; se não existir, é inserido com valor
+inicial `1`. `PdoSubmissionRegistry` usa a chave primária do digest para impedir
+duplicações.
+
+O projecto inclui testes unitários para o SQL gerado e um teste de integração
+opcional activado por `EFATURA_TEST_SQLSRV_DSN`. Para aplicações críticas, valide
+a versão concreta de SQL Server e do driver `pdo_sqlsrv` usada em produção.
+
+Antes de considerar o suporte plenamente coberto no CI público, ainda convém
+adicionar:
+
 - job CI com SQL Server real;
 - testes de concorrência e idempotência.

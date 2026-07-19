@@ -9,10 +9,7 @@ use PDO;
 use PDOException;
 
 /**
- * Registo de idempotência persistente e atómico para SQLite, MySQL/MariaDB e PostgreSQL.
- *
- * Outros drivers PDO só devem ser usados em produção depois de implementação e
- * teste de concorrência específicos.
+ * Registo de idempotência persistente e atómico para SQLite, MySQL/MariaDB, PostgreSQL e SQL Server.
  */
 final class PdoSubmissionRegistry implements SubmissionRegistry
 {
@@ -25,10 +22,15 @@ final class PdoSubmissionRegistry implements SubmissionRegistry
 
     public function createTable(): void
     {
-        $this->pdo->exec(
-            "CREATE TABLE IF NOT EXISTS {$this->safeTable()} ("
-            . 'digest CHAR(64) PRIMARY KEY, claimed_at VARCHAR(32) NOT NULL)'
-        );
+        $table = $this->safeTable();
+        $driver = (string) $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $sql = $driver === 'sqlsrv'
+            ? "IF OBJECT_ID(N'{$table}', N'U') IS NULL BEGIN CREATE TABLE {$table} ("
+                . 'digest CHAR(64) PRIMARY KEY, claimed_at VARCHAR(32) NOT NULL) END'
+            : "CREATE TABLE IF NOT EXISTS {$table} ("
+                . 'digest CHAR(64) PRIMARY KEY, claimed_at VARCHAR(32) NOT NULL)';
+
+        $this->pdo->exec($sql);
     }
 
     public function claim(string $digest): bool
@@ -43,6 +45,8 @@ final class PdoSubmissionRegistry implements SubmissionRegistry
                 . ' VALUES (:digest, :claimed) ON CONFLICT(digest) DO NOTHING',
             'mysql' => "INSERT IGNORE INTO {$this->safeTable()} (digest, claimed_at)"
                 . ' VALUES (:digest, :claimed)',
+            'sqlsrv' => "INSERT INTO {$this->safeTable()} (digest, claimed_at)"
+                . ' VALUES (:digest, :claimed)',
             default => "INSERT INTO {$this->safeTable()} (digest, claimed_at)"
                 . ' VALUES (:digest, :claimed)',
         };
@@ -50,6 +54,10 @@ final class PdoSubmissionRegistry implements SubmissionRegistry
         try {
             $statement = $this->pdo->prepare($sql);
             $statement->execute(['digest' => $digest, 'claimed' => gmdate(DATE_ATOM)]);
+
+            if ($driver === 'sqlsrv') {
+                return true;
+            }
 
             return $statement->rowCount() === 1;
         } catch (PDOException $exception) {
